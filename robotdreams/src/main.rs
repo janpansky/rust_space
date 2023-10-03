@@ -1,3 +1,6 @@
 fn main() {
-    println!("Hello, world!");
+
+    let var = String::from("Braiins!");
+
+    println!("Hello, {}!", var);
 }
