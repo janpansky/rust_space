@@ -1,47 +1,44 @@
-use std::io;
 use std::env;
+use std::io;
 use slug::slugify;
 
 fn main() {
-    println!("Please enter your name:");
-
-    let mut name = String::new();
-
-    // Read user input into the 'name' variable
-    io::stdin()
-        .read_line(&mut name)
-        .expect("Failed to read line");
-
-    println!("Hello, {}! Welcome to the world of Rust!", name.trim());
-
     let args: Vec<String> = env::args().collect();
 
-    println!("{}", args[0]);
+    if args.len() < 2 {
+        println!("No argument provided, please use (lowercase, uppercase, no-spaces or slugify)");
+        return;
+    }
 
-    let name = name.trim();
+    let mut input_text = String::new();
 
-    let lowercase_result = transform_text(name, "lowercase");
-    println!("Lowercase: {}", lowercase_result);
+    println!("Please enter the text you want to transform:");
 
-    let uppercase_result = transform_text(name, "uppercase");
-    println!("Uppercase: {}", uppercase_result);
+    io::stdin()
+        .read_line(&mut input_text)
+        .expect("Failed to read line");
 
-    let no_spaces_result = transform_text(name, "no-spaces");
-    println!("No Spaces: {}", no_spaces_result);
+    // Shadow the variable
+    let input_text = input_text.trim();
 
-    let slugify_result = transform_text(name, "slugify");
-    println!("Slugify: {}", slugify_result);
-
-    let invalid_result = transform_text(name, "invalid-mode");
-    println!("Invalid Mode: {}", invalid_result);
-}
-
-fn transform_text(text: &str, mode: &str) -> String {
-    match mode {
-        "lowercase" => text.to_lowercase(),
-        "uppercase" => text.to_uppercase(),
-        "no-spaces" => text.replace(" ", ""),
-        "slugify" => slugify(text),
-        _ => String::from("Invalid transformation mode"),
+    // Iterate over arguments provided, skip the first
+    for action in args.iter().skip(1) {
+        match action.as_str() {
+            "lowercase" => {
+                println!("Lowercase: {}", input_text.to_lowercase());
+            }
+            "uppercase" => {
+                println!("Uppercase: {}", input_text.to_uppercase());
+            }
+            "no-spaces" => {
+                println!("No Spaces: {}", input_text.replace(" ", ""));
+            }
+            "slugify" => {
+                println!("Slugify: {}", slugify(input_text));
+            }
+            _ => {
+                println!("Unknown action: {}", action);
+            }
+        }
     }
 }
