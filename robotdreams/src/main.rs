@@ -1,44 +1,51 @@
 use std::env;
-use std::io;
 use slug::slugify;
+use std::error::Error;
 
-fn main() {
+fn lowercase(input: &str) -> Result<String, Box<dyn Error>> {
+    Ok(input.to_lowercase())
+}
+
+fn uppercase(input: &str) -> Result<String, Box<dyn Error>> {
+    Ok(input.to_uppercase())
+}
+
+fn no_spaces(input: &str) -> Result<String, Box<dyn Error>> {
+    Ok(input.replace(" ", ""))
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
-        println!("No argument provided, please use (lowercase, uppercase, no-spaces or slugify)");
-        return;
+        eprintln!("No argument provided, please use (lowercase, uppercase, no-spaces, or slugify)");
+        return Ok(());
     }
 
     let mut input_text = String::new();
 
     println!("Please enter the text you want to transform:");
+    std::io::stdin().read_line(&mut input_text)?;
 
-    io::stdin()
-        .read_line(&mut input_text)
-        .expect("Failed to read line");
-
-    // Shadow the variable
     let input_text = input_text.trim();
 
-    // Iterate over arguments provided, skip the first
-    for action in args.iter().skip(1) {
-        match action.as_str() {
-            "lowercase" => {
-                println!("Lowercase: {}", input_text.to_lowercase());
-            }
-            "uppercase" => {
-                println!("Uppercase: {}", input_text.to_uppercase());
-            }
-            "no-spaces" => {
-                println!("No Spaces: {}", input_text.replace(" ", ""));
-            }
-            "slugify" => {
-                println!("Slugify: {}", slugify(input_text));
-            }
-            _ => {
-                println!("Unknown action: {}", action);
-            }
+    match args[1].as_str() {
+        "lowercase" => {
+            println!("Lowercase: {}", lowercase(input_text)?);
+        }
+        "uppercase" => {
+            println!("Uppercase: {}", uppercase(input_text)?);
+        }
+        "no-spaces" => {
+            println!("No Spaces: {}", no_spaces(input_text)?);
+        }
+        "slugify" => {
+            println!("Slugify: {}", slugify(input_text));
+        }
+        _ => {
+            eprintln!("Unknown action: {}", args[1]);
         }
     }
+
+    Ok(())
 }
