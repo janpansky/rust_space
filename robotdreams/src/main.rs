@@ -29,23 +29,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let input_text = input_text.trim();
 
-    match args[1].as_str() {
-        "lowercase" => {
-            println!("Lowercase: {}", lowercase(input_text)?);
-        }
-        "uppercase" => {
-            println!("Uppercase: {}", uppercase(input_text)?);
-        }
-        "no-spaces" => {
-            println!("No Spaces: {}", no_spaces(input_text)?);
-        }
-        "slugify" => {
-            println!("Slugify: {}", slugify(input_text));
-        }
-        _ => {
-            eprintln!("Unknown action: {}", args[1]);
-        }
-    }
+    let result = match args[1].as_str() {
+        "lowercase" => format!("Lowercase: {}", lowercase(input_text)?),
+        "uppercase" => format!("Uppercase: {}", uppercase(input_text)?),
+        "no-spaces" => format!("No Spaces: {}", no_spaces(input_text)?),
+        "slugify" => format!("Slugify: {}", slugify(input_text)),
+        _ => format!("Unknown action: {}", args[1]),
+    };
 
+    println!("{}", result);
     Ok(())
 }
