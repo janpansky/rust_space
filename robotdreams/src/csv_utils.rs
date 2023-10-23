@@ -10,7 +10,18 @@ pub fn process_csv(input: &str) -> Result<(), Box<dyn Error>> {
     println!("{}", formatted_headers);
 
     for result in reader.records() {
-        let record = result?;
+        let record = match result {
+            Ok(record) => record,
+            Err(err) => {
+                eprintln!("Error reading record: {}", err);
+                continue; // Skip this record and continue with the next one
+            }
+        };
+
+        if record.len() != headers.len() {
+            eprintln!("Record has a different number of fields. Skipping.");
+            continue; // Skip this record and continue with the next one
+        }
 
         let formatted_record = format_csv_row(&record, 16);
         println!("{}", formatted_record);
@@ -18,6 +29,14 @@ pub fn process_csv(input: &str) -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+//Example of handling of more than 16 chars - my approach
+//input:
+//name,surname,adress
+// Jan,Pansky,Tahle adresa je moc dlouha az az
+//
+//Output:
+// name             | surname          | adress
+// Jan              | Pansky           | Tahle adresa ...
 
 fn format_csv_row(row: &StringRecord, column_width: usize) -> String {
     row.iter()
@@ -25,10 +44,11 @@ fn format_csv_row(row: &StringRecord, column_width: usize) -> String {
             let truncated = if cell.len() <= column_width {
                 cell.to_string()
             } else {
-                cell.chars().take(column_width).collect::<String>()
+                cell.chars().take(column_width - 3).collect::<String>() + "..."
             };
             format!("{:<width$}", truncated, width = column_width)
         })
         .collect::<Vec<String>>()
         .join(" | ")
 }
+
