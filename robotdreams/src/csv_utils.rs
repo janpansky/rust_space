@@ -2,6 +2,10 @@ use csv::{Reader, StringRecord};
 use std::error::Error;
 use std::fmt;
 
+const DEFAULT_COLUMN_WIDTH: usize = 16; // Define a constant for the default column width
+const DEFAULT_FILLER: usize = 3; // Define a constant for the default filler value when size > 16
+
+
 struct CsvRecord {
     data: StringRecord,
 }
@@ -22,7 +26,7 @@ impl CsvRecord {
 // Jan              | Pansky           | Tahle adresa ...
 impl fmt::Display for CsvRecord {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let column_width = 16;
+        let column_width = DEFAULT_COLUMN_WIDTH;
         // Format each cell in the CSV row, truncating if necessary.
         let formatted_columns: Vec<String> = self
             .data
@@ -32,7 +36,7 @@ impl fmt::Display for CsvRecord {
                     cell.to_string()
                 } else {
                     cell.chars()
-                        .take(column_width - 3)
+                        .take(column_width - DEFAULT_FILLER)
                         .collect::<String>()
                         + "..."
                 };
@@ -63,7 +67,7 @@ pub fn process_csv(input: &str) -> Result<(), Box<dyn Error>> {
         // Check if the number of fields in the record matches the header.
         if record.data.len() != headers.len() {
             eprintln!("Record has a different number of fields. Skipping.");
-            continue; // Skip this record and continue with the next one
+            continue;
         }
 
         println!("{}", record);
