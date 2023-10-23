@@ -5,18 +5,21 @@ use std::error::Error;
 use std::io;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    // Collect command-line arguments.
     let args: Vec<String> = env::args().collect();
 
+    // Check if the user provided the expected number of arguments.
     if args.len() < 2 {
         eprintln!("No argument provided, please use (lowercase, uppercase, no-spaces, csv, or slugify)");
         return Ok(());
     }
 
+    // Initialize an empty string to collect user input.
     let mut input_text = String::new();
 
-    println!("Create a table, treats first row as header, the rest as rows. Double enter (an empty line indicates the end of the operation");
+    println!("Create a table, treats the first row as the header, the rest as rows. Double enter (an empty line indicates the end of the operation");
 
-    // Read input lines until an empty line is encountered
+    // Read input lines until an empty line is encountered.
     loop {
         let mut line = String::new();
         io::stdin().read_line(&mut line)?;
@@ -30,6 +33,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let input_text = input_text.trim();
 
+    // Execute the requested operation based on the provided argument.
     match args[1].as_str() {
         "lowercase" => {
             println!("Lowercase: {}", text_utils::lowercase(input_text)?);
@@ -41,6 +45,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!("No Spaces: {}", text_utils::no_spaces(input_text)?);
         }
         "csv" => {
+            // Process the CSV input.
             csv_utils::process_csv(input_text)?;
         }
         "slugify" => {
