@@ -1,42 +1,8 @@
+use robotdreams::text_utils;
+use robotdreams::csv_utils;
 use std::env;
-use slug::slugify;
 use std::error::Error;
 use std::io;
-
-fn lowercase(input: &str) -> Result<String, Box<dyn Error>> {
-    Ok(input.to_lowercase())
-}
-
-fn uppercase(input: &str) -> Result<String, Box<dyn Error>> {
-    Ok(input.to_uppercase())
-}
-
-fn no_spaces(input: &str) -> Result<String, Box<dyn Error>> {
-    Ok(input.replace(" ", ""))
-}
-
-fn csv(input: &str) -> Result<(), Box<dyn Error>> {
-    let mut reader = csv::Reader::from_reader(input.as_bytes());
-
-    // Read the headers from the first line
-    let headers = reader.headers()?.clone();
-
-    // Join the headers into a pipe-separated string
-    let formatted_headers = headers.iter().collect::<Vec<&str>>().join(" | ");
-    println!("{}", formatted_headers);
-
-    // Read and process data rows
-    for result in reader.records() {
-        let record = result?;
-
-        // Join the fields of the record into a pipe-separated string
-        let formatted_record = record.iter().collect::<Vec<&str>>().join(" | ");
-        println!("{}", formatted_record);
-    }
-
-    Ok(())
-}
-
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
@@ -48,7 +14,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut input_text = String::new();
 
-    println!("Create a table, threats first row as header, the rest as rows. Double enter (an empty line indicates the end of the operation");
+    println!("Create a table, treats first row as header, the rest as rows. Double enter (an empty line indicates the end of the operation");
 
     // Read input lines until an empty line is encountered
     loop {
@@ -66,19 +32,19 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     match args[1].as_str() {
         "lowercase" => {
-            println!("Lowercase: {}", lowercase(input_text)?);
+            println!("Lowercase: {}", text_utils::lowercase(input_text)?);
         }
         "uppercase" => {
-            println!("Uppercase: {}", uppercase(input_text)?);
+            println!("Uppercase: {}", text_utils::uppercase(input_text)?);
         }
         "no-spaces" => {
-            println!("No Spaces: {}", no_spaces(input_text)?);
+            println!("No Spaces: {}", text_utils::no_spaces(input_text)?);
         }
         "csv" => {
-            csv(input_text)?;
+            csv_utils::process_csv(input_text)?;
         }
         "slugify" => {
-            println!("Slugify: {}", slugify(input_text));
+            println!("Slugify: {}", slug::slugify(input_text));
         }
         _ => {
             eprintln!("Unknown action: {}", args[1]);
