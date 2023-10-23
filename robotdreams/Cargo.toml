@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 io = "0.0.2"
 slug = "0.1.4"
+csv = "1.1"
