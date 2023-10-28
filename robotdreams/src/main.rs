@@ -6,6 +6,7 @@ use std::thread;
 use flume::{Receiver, Sender};
 use std::str::FromStr;
 use std::fs;
+use std::env;
 
 #[derive(Debug)]
 enum Command {
@@ -79,7 +80,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                         continue;
                     }
                     let filename = parts[1];
-                    match read_csv_file(filename) {
+
+                    // Get the current working directory and construct the full path to the CSV file
+                    let current_dir = env::current_dir().expect("Something is wrong with the path");
+                    let csv_path = current_dir.join(filename);
+                    // println!("path {:?} and {:?}", current_dir, csv_path);
+
+                    // Use {csv input.csv} command
+                    match read_csv_file(&csv_path) {
                         Ok(csv_data) => {
                             // Automatically parse and process the CSV data here
                             // For example, you can process the CSV data and send the result
@@ -109,7 +117,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn read_csv_file(filename: &str) -> Result<String, Box<dyn Error>> {
+fn read_csv_file(filename: &std::path::Path) -> Result<String, Box<dyn Error>> {
     let contents = fs::read_to_string(filename)?;
     Ok(contents)
 }
