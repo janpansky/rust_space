@@ -3,11 +3,12 @@ mod text_utils;
 
 use std::error::Error;
 use std::thread;
-use flume::{Receiver, Sender};
+
 use std::str::FromStr;
 use std::fs;
 use std::env;
 use std::io;
+
 
 #[derive(Debug)]
 enum Command {
@@ -36,6 +37,7 @@ impl FromStr for Command {
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
 
+    // For the bonus point
     if args.len() > 1 {
         // Initialize an empty string to collect user input.
         let mut input_text = String::new();
@@ -85,7 +87,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let (result_sender, result_receiver) = flume::unbounded::<String>();
 
         // Spawn an input-receiving thread.
-        let input_thread = thread::spawn(move || {
+        let _input_thread = thread::spawn(move || {
             loop {
                 let mut input = String::new();
                 std::io::stdin().read_line(&mut input).unwrap();
@@ -94,7 +96,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         });
 
         // Spawn a processing thread.
-        let processing_thread = thread::spawn(move || {
+        let _processing_thread = thread::spawn(move || {
             loop {
                 let input = input_receiver.recv().unwrap();
                 let parts: Vec<&str> = input.trim().splitn(2, ' ').collect();
@@ -122,7 +124,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                     Ok(Command::Csv) => {
                         if parts.len() < 2 {
-                            eprintln!("Missing CSV filename. Use: csv <filename>");
+                            eprintln!("Missing CSV filename. Use: csv <filename> e.g. csv <input.csv>");
                             continue;
                         }
                         let filename = parts[1];
