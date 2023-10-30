@@ -47,7 +47,7 @@ impl fmt::Display for CsvRecord {
     }
 }
 
-pub fn process_csv(input: String) -> Result<(), Box<dyn Error>> {
+pub fn process_csv(input: &str) -> Result<(), Box<dyn Error>> {
     let mut reader = Reader::from_reader(input.as_bytes());
 
     let headers = reader.headers()?.clone();
