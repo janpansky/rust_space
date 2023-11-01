@@ -14,3 +14,15 @@ pub fn uppercase(input: &str) -> Result<String, Box<dyn Error>> {
 pub fn no_spaces(input: &str) -> Result<String, Box<dyn Error>> {
     Ok(input.replace(" ", ""))
 }
+
+/// Reverse the input string.
+pub fn reverse(input: &str) -> Result<String, Box<dyn Error>> {
+    let reversed: String = input.chars().rev().collect();
+    Ok(reversed)
+}
+
+/// Capitalize the input string.
+pub fn capitalize(input: &str) -> Result<String, Box<dyn Error>> {
+    let capitalized: String = input.to_uppercase();
+    Ok(capitalized)
+}
