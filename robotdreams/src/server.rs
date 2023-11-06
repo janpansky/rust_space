@@ -4,11 +4,12 @@ use tokio::io::{AsyncReadExt};
 use serde::{Serialize, Deserialize};
 use std::fs::File;
 use std::io::Write;
+use chrono::Utc;
 
 #[derive(Serialize, Deserialize)]
 enum MessageType {
-    File(String),
-    Image(String),
+    File(String, Vec<u8>), // Filename and its content as bytes
+    Image(Vec<u8>), // Image content as bytes
     Text(String),
     Quit,
 }
@@ -39,14 +40,22 @@ async fn handle_client(mut socket: TcpStream) {
 
         if let Ok(message) = serde_cbor::from_slice::<MessageType>(&buffer[0..n]) {
             match message {
-                MessageType::File(_path) => {
-                    println!("File transferred");
+                MessageType::File(filename, file_content) => {
+                    // Handle file transfer
+                    let file_path = format!("files/{}", filename);
+                    save_file(&file_path, &file_content).unwrap();
+                    println!("Receiving file: {}", filename);
                 }
-                MessageType::Image(_path) => {
+                MessageType::Image(image_content) => {
                     // Handle image transfer
+                    let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
+                    let filename = format!("images/{}.png", timestamp);
+                    save_file(&filename, &image_content).unwrap();
+                    println!("Receiving image: {}", filename);
                 }
-                MessageType::Text(_text) => {
+                MessageType::Text(text) => {
                     // Handle text message
+                    println!("Received text: {}", text);
                 }
                 MessageType::Quit => {
                     // Handle client quitting
