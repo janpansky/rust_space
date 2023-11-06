@@ -2,11 +2,14 @@ use std::error::Error;
 use tokio::net::TcpStream;
 use tokio::io::{self, AsyncWriteExt, AsyncBufReadExt};
 use serde::{Serialize, Deserialize};
+use std::fs::File;
+use std::io::Write;
+use chrono::Utc; // for timestamp
 
 #[derive(Serialize, Deserialize)]
 enum MessageType {
-    File(String),
-    Image(String),
+    File(String, Vec<u8>), // Filename and its content as bytes
+    Image(Vec<u8>), // Image content as bytes
     Text(String),
     Quit,
 }
@@ -20,6 +23,13 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     let stdin = io::stdin();
     let mut reader = io::BufReader::new(stdin);
 
+    let images_dir = "images";
+    let files_dir = "files";
+
+    // Create directories if they don't exist
+    std::fs::create_dir_all(images_dir)?;
+    std::fs::create_dir_all(files_dir)?;
+
     loop {
         let mut input = String::new();
         println!("Enter a message (or type '.quit' to exit):");
@@ -31,9 +41,42 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
             stream.write_all(&message_bytes).await?;
             break;
         } else {
-            let text_message = MessageType::Text(input.clone());
-            let message_bytes = serde_cbor::to_vec(&text_message)?;
-            stream.write_all(&message_bytes).await?;
+            if input.starts_with(".file") {
+                let filename = input.trim_start_matches(".file ").trim();
+                let file_content = Vec::new(); // Read file content from the file
+                // You should read the file content here and store it in the `file_content` vector.
+
+                // Save the file to the files directory
+                let file_path = format!("{}/{}", files_dir, filename);
+                let mut file = File::create(&file_path)?;
+                file.write_all(&file_content)?;
+
+                println!("Receiving file: {}", filename);
+
+                let file_message = MessageType::File(filename.to_string(), file_content);
+                let message_bytes = serde_cbor::to_vec(&file_message)?;
+                stream.write_all(&message_bytes).await?;
+            } else if input.starts_with(".image") {
+                let image_content = Vec::new(); // Read image content from the input
+                // You should read the image content here and store it in the `image_content` vector.
+                let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
+                let filename = format!("{}.png", timestamp);
+
+                // Save the image to the images directory
+                let image_path = format!("{}/{}", images_dir, filename);
+                let mut file = File::create(&image_path)?;
+                file.write_all(&image_content)?;
+
+                println!("Receiving image: {}", filename);
+
+                let image_message = MessageType::Image(image_content);
+                let message_bytes = serde_cbor::to_vec(&image_message)?;
+                stream.write_all(&message_bytes).await?;
+            } else {
+                let text_message = MessageType::Text(input.clone());
+                let message_bytes = serde_cbor::to_vec(&text_message)?;
+                stream.write_all(&message_bytes).await?;
+            }
         }
     }
 
