@@ -39,20 +39,8 @@ async fn handle_client(mut socket: TcpStream) {
 
         if let Ok(message) = serde_cbor::from_slice::<MessageType>(&buffer[0..n]) {
             match message {
-                MessageType::File(path) => {
-                    if let Ok(n) = socket.read(&mut buffer).await {
-                        if n == 0 {
-                            return;
-                        }
-                        // Assuming the entire file content is received in one go
-                        let file_content = &buffer[0..n];
-
-                        // Save the file to the specified path
-                        if let Err(e) = save_file(&path, file_content) {
-                            // Handle the error (e.g., log or send an error message back to the client)
-                            println!("Error saving file: {}", e);
-                        }
-                    }
+                MessageType::File(_path) => {
+                    println!("File transferred");
                 }
                 MessageType::Image(_path) => {
                     // Handle image transfer
