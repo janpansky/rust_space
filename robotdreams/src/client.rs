@@ -48,6 +48,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 
                 // Save the file to the files directory
                 let file_path = format!("{}/{}", files_dir, filename);
+                println!("filepath: {}", file_path);
                 let mut file = File::create(&file_path)?;
                 file.write_all(&file_content)?;
 
