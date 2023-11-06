@@ -13,36 +13,28 @@ enum MessageType {
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>> {
-    let server_addr = "localhost:11111";
+    let server_addr = "0.0.0.0:11111";
     let mut stream = TcpStream::connect(server_addr).await?;
     println!("Connected to server at {}", server_addr);
 
     let stdin = io::stdin();
     let mut reader = io::BufReader::new(stdin);
 
-    let mut line = String::new();
+    loop {
+        let mut input = String::new();
+        println!("Enter a message (or type '.quit' to exit):");
+        reader.read_line(&mut input).await?;
 
-    while let Ok(n) = reader.read_line(&mut line).await {
-        if n == 0 {
+        if input.trim() == ".quit" {
+            let quit_message = MessageType::Quit;
+            let message_bytes = serde_cbor::to_vec(&quit_message)?;
+            stream.write_all(&message_bytes).await?;
             break;
-        }
-
-        let message = if line.starts_with(".file") {
-            let path = line.trim_start_matches(".file ").trim();
-            MessageType::File(path.to_string())
-        } else if line.starts_with(".image") {
-            let path = line.trim_start_matches(".image ").trim();
-            MessageType::Image(path.to_string())
-        } else if line.trim() == ".quit" {
-            MessageType::Quit
         } else {
-            MessageType::Text(line.clone())
-        };
-
-        let message_bytes = serde_cbor::to_vec(&message)?;
-        stream.write_all(&message_bytes).await?;
-
-        line.clear();
+            let text_message = MessageType::Text(input.clone());
+            let message_bytes = serde_cbor::to_vec(&text_message)?;
+            stream.write_all(&message_bytes).await?;
+        }
     }
 
     Ok(())

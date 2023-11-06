@@ -4,8 +4,6 @@ use tokio::io::{AsyncReadExt};
 use serde::{Serialize, Deserialize};
 
 
-
-
 #[derive(Serialize, Deserialize)]
 enum MessageType {
     File(String),
@@ -15,7 +13,7 @@ enum MessageType {
 }
 
 #[tokio::main]
-pub async fn main() -> Result<(), Box<dyn Error> > {
+pub async fn main() -> Result<(), Box<dyn Error>> {
     let listener = TcpListener::bind("0.0.0.0:11111").await?;
     println!("Server listening on 0.0.0.0:11111");
 
@@ -27,6 +25,8 @@ pub async fn main() -> Result<(), Box<dyn Error> > {
 }
 
 async fn handle_client(mut socket: TcpStream) {
+    println!("Client connected");
+
     // Handle incoming messages from clients here
     let mut buffer = vec![0u8; 1024];
     while let Ok(n) = socket.read(&mut buffer).await {
@@ -47,6 +47,7 @@ async fn handle_client(mut socket: TcpStream) {
                 }
                 MessageType::Quit => {
                     // Handle client quitting
+                    return; // Terminate the client connection
                 }
             }
         }
