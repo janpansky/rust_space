@@ -29,7 +29,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 async fn handle_client(mut socket: TcpStream) {
     println!("Client connected");
 
-    // Handle incoming messages from clients here
+    // Handle incoming messages from clients
     let mut buffer = vec![0u8; 1024];
     while let Ok(n) = socket.read(&mut buffer).await {
         println!("{:?}", n);

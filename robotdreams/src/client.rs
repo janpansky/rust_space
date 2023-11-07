@@ -9,8 +9,10 @@ use image::{DynamicImage, ImageFormat}; // Import image-related items
 
 #[derive(Serialize, Deserialize)]
 enum MessageType {
-    File(String, Vec<u8>), // Filename and its content as bytes
-    Image(Vec<u8>), // Image content as bytes
+    File(String, Vec<u8>),
+    // Filename and its content as bytes
+    Image(Vec<u8>),
+    // Image content as bytes
     Text(String),
     Quit,
 }
@@ -45,7 +47,6 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
             if input.starts_with(".file") {
                 let filename = input.trim_start_matches(".file ").trim();
                 let file_content = Vec::new(); // Read file content from the file
-                // You should read the file content here and store it in the `file_content` vector.
 
                 // Save the file to the files directory
                 let file_path = format!("{}/{}", files_dir, filename);
@@ -60,7 +61,6 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
                 stream.write_all(&message_bytes).await?;
             } else if input.starts_with(".image") {
                 let image_content = Vec::new(); // Read image content from the input
-                // You should read the image content here and store it in the `image_content` vector.
 
                 // Convert the received image content to a DynamicImage
                 let dynamic_image = image::load_from_memory(&image_content)?;
@@ -69,7 +69,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
                 let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
                 let filename = format!("{}.png", timestamp);
 
-               // Save the image to the images directory as PNG
+                // Save the image to the images directory as PNG
                 let image_path = format!("{}/{}", images_dir, filename);
                 // Save the image in PNG format
                 dynamic_image.save_with_format(image_path, ImageFormat::Png)?;
