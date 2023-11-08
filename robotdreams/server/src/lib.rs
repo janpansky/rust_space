@@ -1,18 +1,14 @@
 use tokio::net::{TcpListener, TcpStream};
 use std::error::Error;
 use tokio::io::{AsyncReadExt};
-use serde::{Serialize, Deserialize};
 use std::fs::File;
 use std::io::Write;
 use chrono::Utc;
 
-#[derive(Serialize, Deserialize)]
-enum MessageType {
-    File(String, Vec<u8>), // Filename and its content as bytes
-    Image(Vec<u8>), // Image content as bytes
-    Text(String),
-    Quit,
-}
+extern crate shared_library;
+
+use shared_library::MessageType;
+
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>> {
@@ -58,7 +54,6 @@ async fn handle_client(mut socket: TcpStream) {
                     println!("Received text: {}", text);
                 }
                 MessageType::Quit => {
-                    // Handle client quitting
                     return; // Terminate the client connection
                 }
             }

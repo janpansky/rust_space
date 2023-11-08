@@ -6,12 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
-name = "server"
-path = "server/src/lib.rs"
-
-[[bin]]
 name = "client"
-path = "server/src/lib.rs"
+path = "src/lib.rs"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
@@ -19,3 +15,5 @@ serde = { version = "1", features = ["derive"] }
 serde_cbor = "0.11.2"
 image = "0.23"
 chrono = "0.4.31"
+
+shared_library = { path = "../shared_library" }

@@ -1,21 +1,15 @@
 use std::error::Error;
 use tokio::net::TcpStream;
 use tokio::io::{self, AsyncWriteExt, AsyncBufReadExt};
-use serde::{Serialize, Deserialize};
 use std::fs::File;
 use std::io::Write;
 use chrono::Utc;
-use image::{DynamicImage, ImageFormat}; // Import image-related items
+use image::{DynamicImage, ImageFormat};
 
-#[derive(Serialize, Deserialize)]
-enum MessageType {
-    File(String, Vec<u8>),
-    // Filename and its content as bytes
-    Image(Vec<u8>),
-    // Image content as bytes
-    Text(String),
-    Quit,
-}
+extern crate shared_library;
+
+use shared_library::MessageType;
+
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>> {
