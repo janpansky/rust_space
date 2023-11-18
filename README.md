@@ -14,7 +14,7 @@ The project is organized into three crates:
 
 1. Clone the repository:
    ```bash
-   git clone git@github.com:janpansky/rust_space.git
+   git clone -b networking git@github.com:janpansky/rust_space.git
    cd robotdreams
 3. Build the project:
     ```bash
