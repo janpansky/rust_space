@@ -17,3 +17,7 @@ image = "0.23"
 chrono = "0.4.31"
 
 shared_library = { path = "../shared_library" }
+log = "0.4.20"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+rayon = "1.8.0"

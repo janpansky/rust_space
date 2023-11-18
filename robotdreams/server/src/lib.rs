@@ -4,16 +4,19 @@ use tokio::io::{AsyncReadExt};
 use std::fs::File;
 use std::io::Write;
 use chrono::Utc;
+use log::{info, error};
 
 extern crate shared_library;
 
 use shared_library::MessageType;
 
-
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>> {
+    // Initialize tracing subscriber for structured logging
+    tracing_subscriber::fmt::init();
+
     let listener = TcpListener::bind("0.0.0.0:11111").await?;
-    println!("Server listening on 0.0.0.0:11111");
+    info!("Server listening on 0.0.0.0:11111");
 
     while let Ok((socket, _)) = listener.accept().await {
         tokio::spawn(handle_client(socket));
@@ -23,12 +26,12 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 }
 
 async fn handle_client(mut socket: TcpStream) {
-    println!("Client connected");
+    info!("Client connected");
 
     // Handle incoming messages from clients
     let mut buffer = vec![0u8; 1024];
     while let Ok(n) = socket.read(&mut buffer).await {
-        println!("{:?}", n);
+        info!("{:?}", n);
 
         if n == 0 {
             break;
@@ -40,18 +43,18 @@ async fn handle_client(mut socket: TcpStream) {
                     // Handle file transfer
                     let file_path = format!("files/{}", filename);
                     save_file(&file_path, &file_content).unwrap();
-                    println!("Receiving file: {}", filename);
+                    info!("Receiving file: {}", filename);
                 }
                 MessageType::Image(image_content) => {
                     // Handle image transfer
                     let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
                     let filename = format!("images/{}.png", timestamp);
                     save_file(&filename, &image_content).unwrap();
-                    println!("Receiving image: {}", filename);
+                    info!("Receiving image: {}", filename);
                 }
                 MessageType::Text(text) => {
                     // Handle text message
-                    println!("Received text: {}", text);
+                    info!("Received text: {}", text);
                 }
                 MessageType::Quit => {
                     return; // Terminate the client connection

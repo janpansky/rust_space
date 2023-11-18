@@ -5,17 +5,20 @@ use std::fs::File;
 use std::io::Write;
 use chrono::Utc;
 use image::{DynamicImage, ImageFormat};
+use log::{info, error};
 
 extern crate shared_library;
 
 use shared_library::MessageType;
 
-
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>> {
+    // Initialize tracing subscriber for structured logging
+    tracing_subscriber::fmt::init();
+
     let server_addr = "0.0.0.0:11111";
     let mut stream = TcpStream::connect(server_addr).await?;
-    println!("Connected to server at {}", server_addr);
+    info!("Connected to server at {}", server_addr);
 
     let stdin = io::stdin();
     let mut reader = io::BufReader::new(stdin);
@@ -44,11 +47,11 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 
                 // Save the file to the files directory
                 let file_path = format!("{}/{}", files_dir, filename);
-                println!("filepath: {}", file_path);
+                info!("filepath: {}", file_path);
                 let mut file = File::create(&file_path)?;
                 file.write_all(&file_content)?;
 
-                println!("Receiving file: {}", filename);
+                info!("Receiving file: {}", filename);
 
                 let file_message = MessageType::File(filename.to_string(), file_content);
                 let message_bytes = serde_cbor::to_vec(&file_message)?;
@@ -66,9 +69,9 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
                 // Save the image to the images directory as PNG
                 let image_path = format!("{}/{}", images_dir, filename);
                 // Save the image in PNG format
-                dynamic_image.save_with_format(image_path, ImageFormat::Png)?;
+                dynamic_image.save(image_path)?;
 
-                println!("Receiving image: {}", filename);
+                info!("Receiving image: {}", filename);
 
                 let image_message = MessageType::Image(image_content);
                 let message_bytes = serde_cbor::to_vec(&image_message)?;
