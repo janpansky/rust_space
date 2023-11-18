@@ -7,7 +7,7 @@ edition = "2021"
 
 [[bin]]
 name = "client"
-path = "src/lib.rs"
+path = "src/client.rs"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }

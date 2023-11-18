@@ -2,7 +2,7 @@ use std::thread;
 use std::error::Error;
 
 
-mod lib;
+mod client;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let client_thread = thread::spawn(|| {

@@ -4,7 +4,7 @@ use tokio::io::{AsyncReadExt};
 use std::fs::File;
 use std::io::Write;
 use chrono::Utc;
-use log::{info, error};
+use log::{info};
 
 extern crate shared_library;
 

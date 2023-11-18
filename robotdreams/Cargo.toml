@@ -3,15 +3,13 @@ name = "robotdreams"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [[bin]]
 name = "server"
 path = "server/src/lib.rs"
 
 [[bin]]
 name = "client"
-path = "server/src/lib.rs"
+path = "client/src/client.rs"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
@@ -19,3 +17,9 @@ serde = { version = "1", features = ["derive"] }
 serde_cbor = "0.11.2"
 image = "0.23"
 chrono = "0.4.31"
+log = "0.4.20"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+rayon = "1.8.0"
+
+shared_library = { path = "shared_library" }

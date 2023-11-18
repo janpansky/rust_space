@@ -4,8 +4,7 @@ use tokio::io::{self, AsyncWriteExt, AsyncBufReadExt};
 use std::fs::File;
 use std::io::Write;
 use chrono::Utc;
-use image::{DynamicImage, ImageFormat};
-use log::{info, error};
+use log::{info};
 
 extern crate shared_library;
 
@@ -68,8 +67,13 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 
                 // Save the image to the images directory as PNG
                 let image_path = format!("{}/{}", images_dir, filename);
-                // Save the image in PNG format
-                dynamic_image.save(image_path)?;
+
+                // Save the image in PNG format using Rayon
+                rayon::join(|| {
+                    dynamic_image.save(image_path).unwrap();
+                }, || {
+                    // Process other parts concurrently if needed
+                });
 
                 info!("Receiving image: {}", filename);
 
