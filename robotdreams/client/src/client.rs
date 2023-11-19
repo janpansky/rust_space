@@ -11,10 +11,13 @@ use tokio::net::TcpStream;
 
 extern crate shared_library;
 
-use shared_library::MessageType;
+use shared_library::{MessageType, create_directories};
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>> {
+    // Create directories if they don't exist
+    create_directories()?;
+
     tracing_subscriber::fmt::init();
 
     let server_addr = "0.0.0.0:11111";
