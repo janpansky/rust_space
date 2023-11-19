@@ -43,14 +43,14 @@ async fn handle_client(mut socket: TcpStream) {
                     // Handle file transfer
                     let file_path = format!("files/{}", filename);
                     save_file(&file_path, &file_content).unwrap();
-                    info!("Receiving file: {}", filename);
+                    info!("Received file: {}", filename);
                 }
                 MessageType::Image(image_content) => {
                     // Handle image transfer
                     let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
                     let filename = format!("images/{}.png", timestamp);
                     save_file(&filename, &image_content).unwrap();
-                    info!("Receiving image: {}", filename);
+                    info!("Received image: {}", filename);
                 }
                 MessageType::Text(text) => {
                     // Handle text message
@@ -61,7 +61,6 @@ async fn handle_client(mut socket: TcpStream) {
                 }
             }
         }
-        buffer.clear();
     }
 }
 
