@@ -30,10 +30,12 @@ The project is organized into three crates:
 5. Sending a Text message:
 
 In the client terminal, enter a message and press Enter. The message will be sent to the server, and you should see the server log the received text.
-6. Sending a File:
+
+7. Sending a File:
 To send a file, type the following command in the client terminal:
    ```bash
    .file filename.txt
+
 7. Sending an Image:
    ```bash
    .image
