@@ -3,6 +3,7 @@ use tokio::net::TcpStream;
 use tokio::io::{self, AsyncWriteExt, AsyncBufReadExt};
 use std::fs::File;
 use std::io::Write;
+use image::ImageFormat;
 use chrono::Utc;
 use log::{info};
 
@@ -58,8 +59,11 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
             } else if input.starts_with(".image") {
                 let image_content = Vec::new(); // Read image content from the input
 
+                // Print or log the image content for debugging
+                println!("Image Content: {:?}", image_content);
+
                 // Convert the received image content to a DynamicImage
-                let dynamic_image = image::load_from_memory(&image_content)?;
+                let dynamic_image = image::load_from_memory_with_format(&image_content, ImageFormat::Png)?;
 
                 // Generate a timestamp for the filename
                 let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
