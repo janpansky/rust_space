@@ -18,9 +18,11 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     // Initialize tracing subscriber for structured logging
     tracing_subscriber::fmt::init();
 
+    // Bind the server to the specified address and port
     let listener = TcpListener::bind("0.0.0.0:11111").await?;
     info!("Server listening on 0.0.0.0:11111");
 
+    // Accept incoming connections and spawn a new task to handle each one
     while let Ok((socket, _)) = listener.accept().await {
         tokio::spawn(handle_client(socket));
     }
@@ -28,11 +30,12 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+// Asynchronously handle a connected client
 async fn handle_client(mut socket: TcpStream) {
     info!("Client connected");
 
     // Handle incoming messages from clients
-    let mut buffer = vec![0u8; 1024];
+    let mut buffer = vec![0u8; 16384];
     while let Ok(n) = socket.read(&mut buffer).await {
         info!("{:?}", n);
 
@@ -40,6 +43,7 @@ async fn handle_client(mut socket: TcpStream) {
             break;
         }
 
+        // Deserialize the received message into MessageType enum
         if let Ok(message) = serde_cbor::from_slice::<MessageType>(&buffer[0..n]) {
             match message {
                 MessageType::File(filename, file_content) => {
@@ -64,6 +68,9 @@ async fn handle_client(mut socket: TcpStream) {
                 }
             }
         }
+
+        // Clear the buffer for the next iteration
+        buffer.clear();
     }
 }
 
