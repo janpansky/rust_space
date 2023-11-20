@@ -34,7 +34,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 async fn handle_client(mut socket: TcpStream) {
     info!("Client connected");
 
-    // Handle incoming messages from clients
+    // Handle incoming messages from clients -- Manual vector size adjustment
     let mut buffer = vec![0u8; 16384];
     while let Ok(n) = socket.read(&mut buffer).await {
         info!("{:?}", n);
@@ -72,6 +72,9 @@ async fn handle_client(mut socket: TcpStream) {
         // Clear the buffer for the next iteration
         buffer.clear();
     }
+
+    // Log that the client connection is closed
+    info!("Client connection closed.");
 }
 
 // Define a function to save a file
