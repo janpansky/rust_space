@@ -33,12 +33,14 @@ In the client terminal, enter a message and press Enter. The message will be sen
 
 6. Sending a File:
 To send a file, type the following command in the client terminal:
-   ```bash
+   ```
    .file rust.txt
 
-7. Sending an Image:
-   ```bash
+7. Sending an Image (test the conversion as well with jpg):
+   ```
    .image rust.png
+   or
+   .image rust.jpg
    
 ### Crates Conversion
 The project has been converted into separate crates for client, server, and a shared library for message types. The workspace is defined in the Cargo.toml at the project root.
