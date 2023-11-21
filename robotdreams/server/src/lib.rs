@@ -34,13 +34,19 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 async fn handle_client(mut socket: TcpStream) {
     info!("Client connected");
 
-    // Handle incoming messages from clients -- Manual vector size adjustment
+    // Handle incoming messages from clients - Vector size manually adjusted
     let mut buffer = vec![0u8; 16384];
-    while let Ok(n) = socket.read(&mut buffer).await {
-        info!("{:?}", n);
+    loop {
+        let n = match socket.read(&mut buffer).await {
+            Ok(n) => n,
+            Err(e) => {
+                eprintln!("Error reading from socket: {}", e);
+                break;
+            }
+        };
 
         if n == 0 {
-            break;
+            break; // Connection closed by the client
         }
 
         // Deserialize the received message into MessageType enum
@@ -64,13 +70,15 @@ async fn handle_client(mut socket: TcpStream) {
                     info!("Received text: {}", text);
                 }
                 MessageType::Quit => {
-                    return; // Terminate the client connection
+                    info!("Client requested termination.");
+                    break; // Terminate the client connection
                 }
             }
         }
 
         // Clear the buffer for the next iteration
         buffer.clear();
+        buffer.resize(16384, 0u8);
     }
 
     // Log that the client connection is closed

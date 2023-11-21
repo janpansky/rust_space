@@ -47,7 +47,8 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 
                     if input.trim() == ".quit" {
                         send_quit_message(&mut stream).await?;
-                        break;
+                        info!("Quit message sent. Client connection ended.");
+                        return Ok(());
                     } else {
                         process_input(&mut stream, &input, files_dir).await?;
                     }
