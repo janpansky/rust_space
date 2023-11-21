@@ -34,7 +34,8 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 
 // Asynchronously handle a connected client
 async fn handle_client(mut socket: TcpStream) {
-    info!("Client connected");
+    let client_addr = socket.peer_addr().unwrap(); // Get the client's address
+    info!("Client connected from: {}", client_addr);
 
     // Handle incoming messages from clients - Vector size manually adjusted
     let mut buffer = vec![0u8; BUFFER_SIZE];
@@ -59,33 +60,38 @@ async fn handle_client(mut socket: TcpStream) {
                     let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
                     let file_path = format!("files/{}.txt", timestamp);
                     save_file(&file_path, &file_content).unwrap();
-                    info!("Received file: {}, saving as {}", filename, file_path);
+                    info!(
+                        "Received file from {}: {}, saving as {}",
+                        client_addr, filename, file_path
+                    );
                 }
                 MessageType::Image(filename, image_content) => {
                     // Handle image transfer
                     let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
                     let file_path = format!("images/{}.png", timestamp);
                     save_file(&file_path, &image_content).unwrap();
-                    info!("Received image: {}, saving as {}", filename, file_path);
+                    info!(
+                        "Received image from {}: {}, saving as {}",
+                        client_addr, filename, file_path
+                    );
                 }
                 MessageType::Text(text) => {
                     // Handle text message
-                    info!("Received text: {}", text);
+                    info!("Received text from {}: {}", client_addr, text);
                 }
                 MessageType::Quit => {
-                    info!("Client requested termination.");
+                    info!("Client from {} requested termination.", client_addr);
                     break; // Terminate the client connection
                 }
             }
         }
 
-        // Clear the buffer for the next iteration
-        buffer.clear();
-        buffer.resize(BUFFER_SIZE, 0u8);
+        // Reset the buffer for the next iteration
+        buffer.iter_mut().for_each(|b| *b = 0u8);
     }
 
     // Log that the client connection is closed
-    info!("Client connection closed.");
+    info!("Client from {} connection closed.", client_addr);
 }
 
 // Define a function to save a file

@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::Read;
 use std::time::Duration;
 
-use image::{ImageFormat};
+use image::ImageFormat;
 use log::info;
 use tokio::io::{self, AsyncBufReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
