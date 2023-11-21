@@ -34,7 +34,8 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 
 // Asynchronously handle a connected client
 async fn handle_client(mut socket: TcpStream) {
-    let client_addr = socket.peer_addr().unwrap(); // Get the client's address
+    let client_addr = socket.peer_addr().unwrap();
+    // Get the client's address
     info!("Client connected from: {}", client_addr);
 
     // Handle incoming messages from clients - Vector size manually adjusted

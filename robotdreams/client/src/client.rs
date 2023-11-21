@@ -118,7 +118,6 @@ async fn handle_image_message(
     stream: &mut TcpStream,
     input: &str,
 ) -> Result<(), Box<dyn Error>> {
-
     let filename = input.trim_start_matches(".image ").trim();
 
     // Construct the file path
