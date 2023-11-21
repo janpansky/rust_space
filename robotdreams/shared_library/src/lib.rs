@@ -4,7 +4,7 @@ use std::fs;
 #[derive(Serialize, Deserialize)]
 pub enum MessageType {
     File(String, Vec<u8>),
-    Image(Vec<u8>),
+    Image(String, Vec<u8>),
     Text(String),
     Quit,
 }

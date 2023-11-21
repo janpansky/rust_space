@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::Read;
 use std::time::Duration;
 
 use image::{ImageFormat};
@@ -50,7 +50,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
                         info!("Quit message sent. Client connection ended.");
                         return Ok(());
                     } else {
-                        process_input(&mut stream, &input, files_dir).await?;
+                        process_input(&mut stream, &input).await?;
                     }
                 }
             }
@@ -74,12 +74,11 @@ async fn send_quit_message(stream: &mut TcpStream) -> Result<(), Box<dyn Error>>
 async fn process_input(
     stream: &mut TcpStream,
     input: &str,
-    files_dir: &str,
 ) -> Result<(), Box<dyn Error>> {
     if input.starts_with(".file") {
-        handle_file_message(stream, input, files_dir).await?;
+        handle_file_message(stream, input).await?;
     } else if input.starts_with(".image") {
-        handle_image_message(stream).await?;
+        handle_image_message(stream, input).await?;
     } else {
         handle_text_message(stream, input).await?;
     }
@@ -87,40 +86,50 @@ async fn process_input(
     Ok(())
 }
 
-// Handle the image message
+// Handle the file message
 async fn handle_file_message(
     stream: &mut TcpStream,
     input: &str,
-    files_dir: &str,
 ) -> Result<(), Box<dyn Error>> {
     let filename = input.trim_start_matches(".file ").trim();
-    let file_content = Vec::new(); // Read file content from the file
 
-    let file_path = format!("{}/{}", files_dir, filename);
-    info!("filepath: {}", file_path);
-    let mut file = File::create(&file_path)?;
-    file.write_all(&file_content)?;
+    // Construct the file path
+    let file_path = format!("assets/files/{}", filename);
+    info!("Filepath: {}", file_path);
 
-    info!("Sending file: {}", filename);
+    // Read the file content from the file
+    let mut file_content = Vec::new();
+    File::open(&file_path)?.read_to_end(&mut file_content)?;
 
+    // Log the size of the file content
+    info!("File Content Length: {}", file_content.len());
+
+    // Write the file content to the stream
     let file_message = MessageType::File(filename.to_string(), file_content);
     let message_bytes = serde_cbor::to_vec(&file_message)?;
     stream.write_all(&message_bytes).await?;
+
+    info!("File '{}' sent successfully.", filename);
 
     Ok(())
 }
 
 async fn handle_image_message(
     stream: &mut TcpStream,
+    input: &str,
 ) -> Result<(), Box<dyn Error>> {
-    // Assuming you have a file with image content, change the path accordingly
-    let file_path = "content/images/rust.png";
 
-    // Read the image content from the file
+    let filename = input.trim_start_matches(".image ").trim();
+
+    // Construct the file path
+    let image_path = format!("assets/images/{}", filename);
+    info!("Filepath: {}", image_path);
+
+    // Read the image assets from the file
     let mut image_content = Vec::new();
-    File::open(file_path)?.read_to_end(&mut image_content)?;
+    File::open(image_path)?.read_to_end(&mut image_content)?;
 
-    // Print or log the image content for debugging
+    // Print or log the image assets for debugging
     info!("Image Content Length: {}", image_content.len());
 
     // Convert the image to PNG format (bonus challenge)
@@ -131,7 +140,7 @@ async fn handle_image_message(
     dynamic_image.write_to(&mut image_bytes, ImageFormat::Png)?;
 
     // Use the original vector for the MessageType::Image variant
-    let image_message = MessageType::Image(image_content);
+    let image_message = MessageType::Image(filename.to_string(), image_content);
     let message_bytes = serde_cbor::to_vec(&image_message)?;
 
     // Attempt to write to the stream
@@ -145,7 +154,7 @@ async fn handle_image_message(
         }
     }
 
-    info!("Sending image...");
+    info!("Image '{}' sent successfully.", filename);
 
     Ok(())
 }

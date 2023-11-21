@@ -10,6 +10,8 @@ extern crate shared_library;
 
 use shared_library::{MessageType, create_directories};
 
+const BUFFER_SIZE: usize = 16384;
+
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>> {
     // Create directories if they don't exist
@@ -35,7 +37,7 @@ async fn handle_client(mut socket: TcpStream) {
     info!("Client connected");
 
     // Handle incoming messages from clients - Vector size manually adjusted
-    let mut buffer = vec![0u8; 16384];
+    let mut buffer = vec![0u8; BUFFER_SIZE];
     loop {
         let n = match socket.read(&mut buffer).await {
             Ok(n) => n,
@@ -54,16 +56,17 @@ async fn handle_client(mut socket: TcpStream) {
             match message {
                 MessageType::File(filename, file_content) => {
                     // Handle file transfer
-                    let file_path = format!("files/{}", filename);
+                    let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
+                    let file_path = format!("files/{}.txt", timestamp);
                     save_file(&file_path, &file_content).unwrap();
-                    info!("Received file: {}", filename);
+                    info!("Received file: {}, saving as {}", filename, file_path);
                 }
-                MessageType::Image(image_content) => {
+                MessageType::Image(filename, image_content) => {
                     // Handle image transfer
                     let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
-                    let filename = format!("images/{}.png", timestamp);
-                    save_file(&filename, &image_content).unwrap();
-                    info!("Received image: {}", filename);
+                    let file_path = format!("images/{}.png", timestamp);
+                    save_file(&file_path, &image_content).unwrap();
+                    info!("Received image: {}, saving as {}", filename, file_path);
                 }
                 MessageType::Text(text) => {
                     // Handle text message
@@ -78,7 +81,7 @@ async fn handle_client(mut socket: TcpStream) {
 
         // Clear the buffer for the next iteration
         buffer.clear();
-        buffer.resize(16384, 0u8);
+        buffer.resize(BUFFER_SIZE, 0u8);
     }
 
     // Log that the client connection is closed
