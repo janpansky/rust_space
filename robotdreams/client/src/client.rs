@@ -99,10 +99,18 @@ async fn handle_file_message(
 
     // Read the file content from the file
     let mut file_content = Vec::new();
-    File::open(&file_path)?.read_to_end(&mut file_content)?;
-
-    // Log the size of the file content
-    info!("File Content Length: {}", file_content.len());
+    match File::open(&file_path) {
+        Ok(mut file) => {
+            file.read_to_end(&mut file_content)?;
+            info!("File Content Length: {}", file_content.len());
+        }
+        Err(e) => {
+            // Handle the file not found error
+            eprintln!("Error opening file '{}': {}", filename, e);
+            // Optionally, you can return an error here if needed
+            return Ok(());
+        }
+    }
 
     // Write the file content to the stream
     let file_message = MessageType::File(filename.to_string(), file_content);
@@ -114,6 +122,7 @@ async fn handle_file_message(
     Ok(())
 }
 
+// Handle the image message
 async fn handle_image_message(
     stream: &mut TcpStream,
     input: &str,
@@ -126,10 +135,26 @@ async fn handle_image_message(
 
     // Read the image assets from the file
     let mut image_content = Vec::new();
-    File::open(image_path)?.read_to_end(&mut image_content)?;
-
-    // Print or log the image assets for debugging
-    info!("Image Content Length: {}", image_content.len());
+    match File::open(&image_path) {
+        Ok(mut file) => {
+            file.read_to_end(&mut image_content)?;
+            info!("Image Content Length: {}", image_content.len());
+        }
+        Err(e) => {
+            // Handle the file not found error
+            if let Some(errno) = e.raw_os_error() {
+                if errno == 2 {
+                    // No such file or directory error
+                    eprintln!("Error opening image file '{}': {}", filename, e);
+                    // Optionally, you can take another action here, like sending an error message to the server
+                    return Ok(());
+                }
+            }
+            // For other errors, print the error message and optionally return an error
+            eprintln!("Error opening image file '{}': {}", filename, e);
+            return Err(Box::new(e));
+        }
+    }
 
     // Convert the image to PNG format (bonus challenge)
     let dynamic_image = image::load_from_memory_with_format(&image_content, ImageFormat::Png)?;

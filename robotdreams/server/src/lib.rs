@@ -1,10 +1,11 @@
 use tokio::net::{TcpListener, TcpStream};
-use std::error::Error;
 use tokio::io::{AsyncReadExt};
+use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 use chrono::Utc;
 use log::{info};
+use anyhow::{Context, Result};
 
 extern crate shared_library;
 
@@ -21,7 +22,8 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     tracing_subscriber::fmt::init();
 
     // Bind the server to the specified address and port
-    let listener = TcpListener::bind("0.0.0.0:11111").await?;
+    let listener = TcpListener::bind("0.0.0.0:11111").await
+        .context("Failed to bind server to address")?; // Use context to add additional information
     info!("Server listening on 0.0.0.0:11111");
 
     // Accept incoming connections and spawn a new task to handle each one
@@ -60,7 +62,9 @@ async fn handle_client(mut socket: TcpStream) {
                     // Handle file transfer
                     let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
                     let file_path = format!("files/{}.txt", timestamp);
-                    save_file(&file_path, &file_content).unwrap();
+                    save_file(&file_path, &file_content)
+                        .with_context(|| format!("Failed to save file: {}", filename))
+                        .unwrap(); // Unwrap is safe here as we are stopping the loop on error
                     info!(
                         "Received file from {}: {}, saving as {}",
                         client_addr, filename, file_path
@@ -70,7 +74,9 @@ async fn handle_client(mut socket: TcpStream) {
                     // Handle image transfer
                     let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
                     let file_path = format!("images/{}.png", timestamp);
-                    save_file(&file_path, &image_content).unwrap();
+                    save_file(&file_path, &image_content)
+                        .with_context(|| format!("Failed to save image: {}", filename))
+                        .unwrap(); // Unwrap is safe here as we are stopping the loop on error
                     info!(
                         "Received image from {}: {}, saving as {}",
                         client_addr, filename, file_path
@@ -96,7 +102,7 @@ async fn handle_client(mut socket: TcpStream) {
 }
 
 // Define a function to save a file
-fn save_file(file_path: &str, content: &[u8]) -> Result<(), Box<dyn Error>> {
+fn save_file(file_path: &str, content: &[u8]) -> Result<()> {
     let mut file = File::create(file_path)?;
     file.write_all(content)?;
     Ok(())
