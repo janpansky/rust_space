@@ -107,7 +107,6 @@ async fn handle_file_message(
         Err(e) => {
             // Handle the file not found error
             eprintln!("Error opening file '{}': {}", filename, e);
-            // Optionally, you can return an error here if needed
             return Ok(());
         }
     }
@@ -146,7 +145,6 @@ async fn handle_image_message(
                 if errno == 2 {
                     // No such file or directory error
                     eprintln!("Error opening image file '{}': {}", filename, e);
-                    // Optionally, you can take another action here, like sending an error message to the server
                     return Ok(());
                 }
             }
