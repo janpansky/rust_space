@@ -9,7 +9,11 @@ path = "server/src/lib.rs"
 
 [[bin]]
 name = "client"
-path = "client/src/client.rs"
+path = "client/src/main.rs"
+
+[[test]]
+name = "test"
+path = "tests/client_tests.rs"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }

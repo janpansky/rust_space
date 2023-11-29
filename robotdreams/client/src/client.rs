@@ -63,7 +63,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 }
 
 // Send a quit message to the server
-async fn send_quit_message(stream: &mut TcpStream) -> Result<(), Box<dyn Error>> {
+pub async fn send_quit_message(stream: &mut TcpStream) -> Result<(), Box<dyn Error>> {
     let quit_message = MessageType::Quit;
     let message_bytes = serde_cbor::to_vec(&quit_message)?;
     stream.write_all(&message_bytes).await?;
@@ -71,7 +71,7 @@ async fn send_quit_message(stream: &mut TcpStream) -> Result<(), Box<dyn Error>>
 }
 
 // Process user input based on the command
-async fn process_input(
+pub async fn process_input(
     stream: &mut TcpStream,
     input: &str,
 ) -> Result<(), Box<dyn Error>> {
@@ -87,7 +87,7 @@ async fn process_input(
 }
 
 // Handle the file message
-async fn handle_file_message(
+pub async fn handle_file_message(
     stream: &mut TcpStream,
     input: &str,
 ) -> Result<(), Box<dyn Error>> {
@@ -122,7 +122,7 @@ async fn handle_file_message(
 }
 
 // Handle the image message
-async fn handle_image_message(
+pub async fn handle_image_message(
     stream: &mut TcpStream,
     input: &str,
 ) -> Result<(), Box<dyn Error>> {
@@ -182,7 +182,7 @@ async fn handle_image_message(
 }
 
 // Handle the text message
-async fn handle_text_message(
+pub async fn handle_text_message(
     stream: &mut TcpStream,
     input: &str,
 ) -> Result<(), Box<dyn Error>> {
@@ -190,4 +190,33 @@ async fn handle_text_message(
     let message_bytes = serde_cbor::to_vec(&text_message)?;
     stream.write_all(&message_bytes).await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    // Import the client module
+    use super::*;
+
+    #[tokio::test]
+    async fn test_handle_text_message() {
+        let mut stream = TcpStream::connect("127.0.0.1:11111").await.unwrap();
+        let input = "Hello, server!";
+        handle_text_message(&mut stream, input).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_handle_file_message() {
+        let mut stream = TcpStream::connect("127.0.0.1:11111").await.unwrap();
+        let input = ".file example.txt";
+        handle_file_message(&mut stream, input).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_handle_image_message() {
+        // Create a TcpStream for testing
+        let mut stream = TcpStream::connect("127.0.0.1:11111").await.unwrap();
+
+        let input = ".image rust.jpg";
+        handle_image_message(&mut stream, input).await.unwrap();
+    }
 }

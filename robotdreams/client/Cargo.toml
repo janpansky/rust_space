@@ -1,5 +1,5 @@
 [package]
-name = "robotdreams"
+name = "client"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,7 +7,7 @@ edition = "2021"
 
 [[bin]]
 name = "client"
-path = "src/client.rs"
+path = "src/main.rs"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
