@@ -144,6 +144,5 @@ fn save_file(file_path: &str, content: &[u8]) -> Result<()> {
 
 // Asynchronously identify the user (placeholder implementation)
 async fn identify_user(pool: &SqlitePool /* any identification data */) -> Option<i64> {
-
     Some(1)
 }
