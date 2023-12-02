@@ -1,11 +1,14 @@
 use tokio::net::{TcpListener, TcpStream};
-use tokio::io::{AsyncReadExt};
+use tokio::io::AsyncReadExt;
 use std::error::Error;
 use std::fs::File;
 use std::io::Write;
+use std::env;
 use chrono::Utc;
 use log::{info};
 use anyhow::{Context, Result};
+use sqlx::sqlite::SqliteConnectOptions;
+use sqlx::sqlite::SqlitePool;
 
 extern crate shared_library;
 
@@ -21,21 +24,50 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     // Initialize tracing subscriber for structured logging
     tracing_subscriber::fmt::init();
 
+    // Construct the correct SQLite database URL
+    println!("{:?}", env::current_dir());
+    let database_path = env::current_dir().unwrap().join("database.sqlite");
+
+    if !database_path.exists() {
+        File::create(&database_path)
+            .expect("Failed to create database file");
+    }
+
+    let options = SqliteConnectOptions::new().filename(&database_path).create_if_missing(true);
+
+    // Connect to the database
+    let pool = SqlitePool::connect_with(options)
+        .await?;
+
+    // Perform any necessary database migrations here
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await
+        .expect("Failed to run database migrations");
+
     // Bind the server to the specified address and port
     let listener = TcpListener::bind("0.0.0.0:11111").await
-        .context("Failed to bind server to address")?; // Use context to add additional information
+        .context("Failed to bind server to address")?;
+    // Use context to add additional information
     info!("Server listening on 0.0.0.0:11111");
 
     // Accept incoming connections and spawn a new task to handle each one
     while let Ok((socket, _)) = listener.accept().await {
-        tokio::spawn(handle_client(socket));
+        // Clone the database pool for each client handler
+        let pool = pool.clone();
+        tokio::spawn(async move {
+            handle_client(socket, pool).await;
+        });
     }
 
     Ok(())
 }
 
 // Asynchronously handle a connected client
-async fn handle_client(mut socket: TcpStream) {
+async fn handle_client(mut socket: TcpStream, pool: SqlitePool) {
+    // Placeholder for user identification
+    let user_id = identify_user(&pool /* any identification data */).await;
+
     let client_addr = socket.peer_addr().unwrap();
     // Get the client's address
     info!("Client connected from: {}", client_addr);
@@ -64,7 +96,8 @@ async fn handle_client(mut socket: TcpStream) {
                     let file_path = format!("files/{}.txt", timestamp);
                     save_file(&file_path, &file_content)
                         .with_context(|| format!("Failed to save file: {}", filename))
-                        .unwrap(); // Unwrap is safe here as we are stopping the loop on error
+                        .unwrap();
+                    // Unwrap is safe here as we are stopping the loop on error
                     info!(
                         "Received file from {}: {}, saving as {}",
                         client_addr, filename, file_path
@@ -76,7 +109,8 @@ async fn handle_client(mut socket: TcpStream) {
                     let file_path = format!("images/{}.png", timestamp);
                     save_file(&file_path, &image_content)
                         .with_context(|| format!("Failed to save image: {}", filename))
-                        .unwrap(); // Unwrap is safe here as we are stopping the loop on error
+                        .unwrap();
+                    // Unwrap is safe here as we are stopping the loop on error
                     info!(
                         "Received image from {}: {}, saving as {}",
                         client_addr, filename, file_path
@@ -106,4 +140,10 @@ fn save_file(file_path: &str, content: &[u8]) -> Result<()> {
     let mut file = File::create(file_path)?;
     file.write_all(content)?;
     Ok(())
+}
+
+// Asynchronously identify the user (placeholder implementation)
+async fn identify_user(pool: &SqlitePool /* any identification data */) -> Option<i64> {
+
+    Some(1)
 }
