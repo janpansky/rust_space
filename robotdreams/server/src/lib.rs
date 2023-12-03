@@ -39,57 +39,35 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     let options = SqliteConnectOptions::new().filename(&database_path).create_if_missing(true);
 
     // Placeholder for user identification
-    let username = "test";
-    let password_hash = "test_hash";
+    let password_hash = "dummy_hash";
 
     // Connect to the database
     let pool = SqlitePool::connect_lazy_with(options);
 
-    match create_user(&pool, username, password_hash).await {
-        Ok(sender_id) => {
-            let receiver_id = 1;
-            let content = "Hello, this is a test message.";
-
-            if let Err(err) = save_text_message(&pool, sender_id, receiver_id, content).await {
-                eprintln!("Failed to save text message: {:?}", err);
-            }
-        }
-        Err(err) => {
-            eprintln!("Failed to create user: {:?}", err);
-        }
-    }
-
-    // Perform any necessary database migrations here
-    sqlx::migrate!("./migrations")
-        .run(&pool)
-        .await
-        .expect("Failed to run database migrations");
-
-    // Bind the server to the specified address and port
     let listener = TcpListener::bind("0.0.0.0:11111").await
         .context("Failed to bind server to address")?;
-    // Use context to add additional information
-    info!("Server listening on 0.0.0.0:11111");
 
-    // Accept incoming connections and spawn a new task to handle each one
-    while let Ok((socket, _)) = listener.accept().await {
-        // Clone the database pool for each client handler
+    while let Ok((socket, addr)) = listener.accept().await {
         let pool = pool.clone();
         tokio::spawn(async move {
-            handle_client(socket, pool).await;
+            // Pass client address to create_user and identify_user
+            let user_id = match create_user(&pool, addr, password_hash).await {
+                Ok(id) => id,
+                Err(err) => {
+                    eprintln!("Failed to create user: {:?}", err);
+                    return;
+                }
+            };
+
+            handle_client(socket, pool, user_id).await;
         });
     }
 
     Ok(())
 }
 
-// Asynchronously handle a connected client
-async fn handle_client(mut socket: TcpStream, pool: SqlitePool) {
-    // Placeholder for user identification
-    let user_id = identify_user(&pool).await;
-
+async fn handle_client(mut socket: TcpStream, pool: SqlitePool, user_id: i64) {
     let client_addr = socket.peer_addr().unwrap();
-    // Get the client's address
     info!("Client connected from: {}", client_addr);
 
     // Handle incoming messages from clients - Vector size manually adjusted
@@ -141,7 +119,8 @@ async fn handle_client(mut socket: TcpStream, pool: SqlitePool) {
                     info!("Received text from {}: {}", client_addr, text);
 
                     // Save the text message to the database
-                    save_text_message(&pool, user_id.unwrap(), 1, &text).await
+                    save_text_message(&pool, user_id, 1, &text)
+                        .await
                         .with_context(|| format!("Failed to save text message: {}", text))
                         .unwrap();
                 }
@@ -160,27 +139,23 @@ async fn handle_client(mut socket: TcpStream, pool: SqlitePool) {
     info!("Client from {} connection closed.", client_addr);
 }
 
-// Define a function to save a file
-fn save_file(file_path: &str, content: &[u8]) -> Result<()> {
-    let mut file = File::create(file_path)?;
-    file.write_all(content)?;
-    Ok(())
-}
-
-// Asynchronously create a user
-async fn create_user(pool: &SqlitePool, username: &str, password_hash: &str) -> Result<i64, sqlx::Error> {
+async fn create_user(
+    pool: &SqlitePool,
+    client_addr: std::net::SocketAddr,
+    password_hash: &str,
+) -> Result<i64, sqlx::Error> {
+    let username = client_addr.ip().to_string(); // Use client IP as username
     let user_id = sqlx::query_scalar(
         "INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id",
     )
-        .bind(username)
-        .bind(password_hash)
-        .fetch_one(pool)
-        .await?;
+    .bind(username)
+    .bind(password_hash)
+    .fetch_one(pool)
+    .await?;
 
     Ok(user_id)
 }
 
-// Asynchronously save a text message
 async fn save_text_message(
     pool: &SqlitePool,
     sender_id: i64,
@@ -193,13 +168,15 @@ async fn save_text_message(
         receiver_id,
         content
     )
-        .execute(pool)
-        .await?;
+    .execute(pool)
+    .await?;
 
     Ok(())
 }
 
-// Asynchronously identify the user
-async fn identify_user(pool: &SqlitePool) -> Option<i64> {
-    Some(1)
+// Define a function to save a file
+fn save_file(file_path: &str, content: &[u8]) -> Result<()> {
+    let mut file = File::create(file_path)?;
+    file.write_all(content)?;
+    Ok(())
 }
