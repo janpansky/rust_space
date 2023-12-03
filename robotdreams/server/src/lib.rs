@@ -47,7 +47,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 
     match create_user(&pool, username, password_hash).await {
         Ok(sender_id) => {
-            let receiver_id = 1/* you need to get a valid receiver_id */;
+            let receiver_id = 1;
             let content = "Hello, this is a test message.";
 
             if let Err(err) = save_text_message(&pool, sender_id, receiver_id, content).await {
