@@ -18,6 +18,9 @@ const BUFFER_SIZE: usize = 16384;
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>> {
+    // Set the DATABASE_URL before connecting to the database
+    std::env::set_var("DATABASE_URL", "sqlite://database.sqlite");
+
     // Create directories if they don't exist
     create_directories()?;
 
@@ -35,9 +38,26 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 
     let options = SqliteConnectOptions::new().filename(&database_path).create_if_missing(true);
 
+    // Placeholder for user identification
+    let username = "test";
+    let password_hash = "test_hash";
+
     // Connect to the database
-    let pool = SqlitePool::connect_with(options)
-        .await?;
+    let pool = SqlitePool::connect_lazy_with(options);
+
+    match create_user(&pool, username, password_hash).await {
+        Ok(sender_id) => {
+            let receiver_id = 1/* you need to get a valid receiver_id */;
+            let content = "Hello, this is a test message.";
+
+            if let Err(err) = save_text_message(&pool, sender_id, receiver_id, content).await {
+                eprintln!("Failed to save text message: {:?}", err);
+            }
+        }
+        Err(err) => {
+            eprintln!("Failed to create user: {:?}", err);
+        }
+    }
 
     // Perform any necessary database migrations here
     sqlx::migrate!("./migrations")
@@ -119,6 +139,11 @@ async fn handle_client(mut socket: TcpStream, pool: SqlitePool) {
                 MessageType::Text(text) => {
                     // Handle text message
                     info!("Received text from {}: {}", client_addr, text);
+
+                    // Save the text message to the database
+                    save_text_message(&pool, user_id.unwrap(), 1, &text).await
+                        .with_context(|| format!("Failed to save text message: {}", text))
+                        .unwrap();
                 }
                 MessageType::Quit => {
                     info!("Client from {} requested termination.", client_addr);
@@ -139,6 +164,38 @@ async fn handle_client(mut socket: TcpStream, pool: SqlitePool) {
 fn save_file(file_path: &str, content: &[u8]) -> Result<()> {
     let mut file = File::create(file_path)?;
     file.write_all(content)?;
+    Ok(())
+}
+
+// Asynchronously create a user (placeholder implementation)
+async fn create_user(pool: &SqlitePool, username: &str, password_hash: &str) -> Result<i64, sqlx::Error> {
+    let user_id = sqlx::query_scalar(
+        "INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id",
+    )
+        .bind(username)
+        .bind(password_hash)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(user_id)
+}
+
+// Asynchronously save a text message
+async fn save_text_message(
+    pool: &SqlitePool,
+    sender_id: i64,
+    receiver_id: i64,
+    content: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        "INSERT INTO chat_messages (sender_id, receiver_id, content) VALUES (?, ?, ?)",
+        sender_id,
+        receiver_id,
+        content
+    )
+        .execute(pool)
+        .await?;
+
     Ok(())
 }
 

@@ -43,6 +43,8 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
                 loop {
                     let mut input = String::new();
                     println!("Enter a message (or type '.quit' to exit):");
+
+                    // Use the AsyncBufReadExt trait for asynchronous reading
                     reader.read_line(&mut input).await?;
 
                     if input.trim() == ".quit" {
