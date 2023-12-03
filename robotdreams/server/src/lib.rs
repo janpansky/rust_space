@@ -19,7 +19,7 @@ const BUFFER_SIZE: usize = 16384;
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>> {
     // Set the DATABASE_URL before connecting to the database
-    std::env::set_var("DATABASE_URL", "sqlite://database.sqlite");
+    env::set_var("DATABASE_URL", "sqlite://database.sqlite");
 
     // Create directories if they don't exist
     create_directories()?;
@@ -86,7 +86,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 // Asynchronously handle a connected client
 async fn handle_client(mut socket: TcpStream, pool: SqlitePool) {
     // Placeholder for user identification
-    let user_id = identify_user(&pool /* any identification data */).await;
+    let user_id = identify_user(&pool).await;
 
     let client_addr = socket.peer_addr().unwrap();
     // Get the client's address
@@ -167,7 +167,7 @@ fn save_file(file_path: &str, content: &[u8]) -> Result<()> {
     Ok(())
 }
 
-// Asynchronously create a user (placeholder implementation)
+// Asynchronously create a user
 async fn create_user(pool: &SqlitePool, username: &str, password_hash: &str) -> Result<i64, sqlx::Error> {
     let user_id = sqlx::query_scalar(
         "INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id",
@@ -199,7 +199,7 @@ async fn save_text_message(
     Ok(())
 }
 
-// Asynchronously identify the user (placeholder implementation)
-async fn identify_user(pool: &SqlitePool /* any identification data */) -> Option<i64> {
+// Asynchronously identify the user
+async fn identify_user(pool: &SqlitePool) -> Option<i64> {
     Some(1)
 }
