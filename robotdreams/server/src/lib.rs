@@ -144,7 +144,12 @@ async fn create_user(
     client_addr: std::net::SocketAddr,
     password_hash: &str,
 ) -> Result<i64, sqlx::Error> {
-    let username = client_addr.ip().to_string(); // Use client IP as username
+    let mut username = client_addr.ip().to_string();
+
+    // Append a timestamp to the username
+    let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
+    username.push_str(&timestamp);
+
     let user_id = sqlx::query_scalar(
         "INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id",
     )
