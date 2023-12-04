@@ -1,5 +1,5 @@
 use tokio::net::{TcpListener, TcpStream};
-use tokio::io::AsyncReadExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use std::error::Error;
 use std::fs::File;
 use std::io::Write;
@@ -56,7 +56,7 @@ async fn accept_connections(
     listener: TcpListener,
     pool: SqlitePool,
     password_hash: &str,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), anyhow::Error> {
     // Continuously accept incoming connections
     while let Ok((socket, addr)) = listener.accept().await {
         // Clone the pool for the asynchronous task
@@ -86,7 +86,7 @@ async fn accept_connections(
     Ok(())
 }
 
-async fn handle_client(mut socket: TcpStream, pool: SqlitePool, user_id: i64) {
+async fn handle_client(mut socket: TcpStream, pool: SqlitePool, user_id: i64) -> Result<(), anyhow::Error> {
     let client_addr = socket.peer_addr().unwrap();
     info!("Client connected from: {}", client_addr);
 
@@ -144,10 +144,32 @@ async fn handle_client(mut socket: TcpStream, pool: SqlitePool, user_id: i64) {
                         .with_context(|| format!("Failed to save text message: {}", text))
                         .unwrap();
                 }
+                MessageType::Login(username, password) => {
+                    // Perform basic authentication
+                    let login_success = username == "user" && password == "password";
+
+                    if login_success {
+                        info!("Client {} logged in successfully.", client_addr);
+                        // Additional logic for handling the logged-in client
+                    } else {
+                        eprintln!("Login failed for client {}.", client_addr);
+                        // Terminate the client connection if login fails
+                        let response_message = MessageType::Quit;
+                        let response_bytes = serde_cbor::to_vec(&response_message)?;
+                        socket.write_all(&response_bytes).await?;
+                        break;
+                    }
+
+                    // Send a login response back to the client
+                    let response_message = MessageType::LoginResponse(login_success);
+                    let response_bytes = serde_cbor::to_vec(&response_message)?;
+                    socket.write_all(&response_bytes).await?;
+                }
                 MessageType::Quit => {
                     info!("Client from {} requested termination.", client_addr);
                     break; // Terminate the client connection
                 }
+                _ => {}
             }
         }
 
@@ -157,13 +179,14 @@ async fn handle_client(mut socket: TcpStream, pool: SqlitePool, user_id: i64) {
 
     // Log that the client connection is closed
     info!("Client from {} connection closed.", client_addr);
+    Ok(()) // Return a Result indicating success
 }
 
 async fn create_user(
     pool: &SqlitePool,
     client_addr: std::net::SocketAddr,
     password_hash: &str,
-) -> Result<i64, sqlx::Error> {
+) -> Result<i64, anyhow::Error> {
     let mut username = client_addr.ip().to_string();
 
     // Append a timestamp to the username

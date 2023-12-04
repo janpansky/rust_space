@@ -5,13 +5,15 @@ use std::time::Duration;
 
 use image::ImageFormat;
 use log::info;
-use tokio::io::{self, AsyncBufReadExt, AsyncWriteExt};
+use tokio::io::{self, AsyncBufReadExt, AsyncWriteExt, AsyncReadExt};
 use tokio::net::TcpStream;
 use tokio::time::sleep;
 
 extern crate shared_library;
 
 use shared_library::{MessageType, create_directories};
+
+const BUFFER_SIZE: usize = 16384;
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>> {
@@ -33,26 +35,33 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
                 let stdin = io::stdin();
                 let mut reader = io::BufReader::new(stdin);
 
-                // Create directories for images and files
-                let images_dir = "images";
-                let files_dir = "files";
-                std::fs::create_dir_all(images_dir)?;
-                std::fs::create_dir_all(files_dir)?;
+                // Login
+                if !is_logged_in(&mut stream).await? {
+                    eprintln!("Login failed. Exiting...");
+                    send_quit_message(&mut stream).await?;
+                    info!("Quit message sent. Client connection ended.");
+                    return Ok(());
+                } else { // Create directories for images and files
+                    let images_dir = "images";
+                    let files_dir = "files";
+                    std::fs::create_dir_all(images_dir)?;
+                    std::fs::create_dir_all(files_dir)?;
 
-                // Main loop for user input
-                loop {
-                    let mut input = String::new();
-                    println!("Enter a message (or type '.quit' to exit):");
+                    // Main loop for user input
+                    loop {
+                        let mut input = String::new();
+                        println!("Enter a message (or type '.quit' to exit):");
 
-                    // Use the AsyncBufReadExt trait for asynchronous reading
-                    reader.read_line(&mut input).await?;
+                        // Use the AsyncBufReadExt trait for asynchronous reading
+                        reader.read_line(&mut input).await?;
 
-                    if input.trim() == ".quit" {
-                        send_quit_message(&mut stream).await?;
-                        info!("Quit message sent. Client connection ended.");
-                        return Ok(());
-                    } else {
-                        process_input(&mut stream, &input).await?;
+                        if input.trim() == ".quit" {
+                            send_quit_message(&mut stream).await?;
+                            info!("Quit message sent. Client connection ended.");
+                            return Ok(());
+                        } else {
+                            process_input(&mut stream, &input).await?;
+                        }
                     }
                 }
             }
@@ -192,6 +201,55 @@ pub async fn handle_text_message(
     let message_bytes = serde_cbor::to_vec(&text_message)?;
     stream.write_all(&message_bytes).await?;
     Ok(())
+}
+
+// Check if the user is logged in
+async fn is_logged_in(stream: &mut TcpStream) -> Result<bool, Box<dyn Error>> {
+    // Initialize the reader within the function
+    let stdin = io::stdin();
+    let mut reader = io::BufReader::new(stdin);
+    // You can send a specific message to the server and wait for a response
+    // or use any other authentication mechanism you have in place.
+    println!("Enter your username:");
+    let mut username = String::new();
+    reader.read_line(&mut username).await?;
+
+    println!("Enter your password:");
+    let mut password = String::new();
+    reader.read_line(&mut password).await?;
+
+    // Send login message to the server
+    let login_message = MessageType::Login(username.trim().to_string(), password.trim().to_string());
+    let message_bytes = serde_cbor::to_vec(&login_message)?;
+    stream.write_all(&message_bytes).await?;
+
+    // Wait for the server response
+    let response_message = receive_login_response(stream).await;
+
+    match response_message {
+        Ok(true) => {
+            println!("Login successful!");
+            Ok(true)
+        }
+        Ok(false) => {
+            eprintln!("Login failed.");
+            Ok(false)
+        }
+        Err(err) => {
+            eprintln!("Error receiving login response: {:?}", err);
+            Ok(false)
+        }
+    }
+}
+
+async fn receive_login_response(stream: &mut TcpStream) -> Result<bool, Box<dyn Error>> {
+    let mut buffer = [0u8; BUFFER_SIZE];
+    stream.read_exact(&mut buffer).await?;
+
+    // Deserialize only the relevant part of the buffer
+    let response: bool = serde_cbor::from_slice(&buffer[..std::mem::size_of::<bool>()])?;
+
+    Ok(response)
 }
 
 #[cfg(test)]

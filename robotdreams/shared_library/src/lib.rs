@@ -6,6 +6,8 @@ pub enum MessageType {
     File(String, Vec<u8>),
     Image(String, Vec<u8>),
     Text(String),
+    Login(String, String),
+    LoginResponse(bool),
     Quit,
 }
 
