@@ -44,3 +44,7 @@ To send a file, type the following command in the client terminal:
    
 ### Crates Conversion
 The project has been converted into separate crates for client, server, and a shared library for message types. The workspace is defined in the Cargo.toml at the project root.
+
+### Additional Features
+The server uses SQLite for storing client information and text messages.
+A login mechanism is implemented, authenticating clients based on **user** and **password** as credentials.
