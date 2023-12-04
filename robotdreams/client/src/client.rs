@@ -41,27 +41,27 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
                     send_quit_message(&mut stream).await?;
                     info!("Quit message sent. Client connection ended.");
                     return Ok(());
-                } else { // Create directories for images and files
-                    let images_dir = "images";
-                    let files_dir = "files";
-                    std::fs::create_dir_all(images_dir)?;
-                    std::fs::create_dir_all(files_dir)?;
+                }
+                // Create directories for images and files
+                let images_dir = "images";
+                let files_dir = "files";
+                std::fs::create_dir_all(images_dir)?;
+                std::fs::create_dir_all(files_dir)?;
 
-                    // Main loop for user input
-                    loop {
-                        let mut input = String::new();
-                        println!("Enter a message (or type '.quit' to exit):");
+                // Main loop for user input
+                loop {
+                    let mut input = String::new();
+                    println!("Enter a message (or type '.quit' to exit):");
 
-                        // Use the AsyncBufReadExt trait for asynchronous reading
-                        reader.read_line(&mut input).await?;
+                    // Use the AsyncBufReadExt trait for asynchronous reading
+                    reader.read_line(&mut input).await?;
 
-                        if input.trim() == ".quit" {
-                            send_quit_message(&mut stream).await?;
-                            info!("Quit message sent. Client connection ended.");
-                            return Ok(());
-                        } else {
-                            process_input(&mut stream, &input).await?;
-                        }
+                    if input.trim() == ".quit" {
+                        send_quit_message(&mut stream).await?;
+                        info!("Quit message sent. Client connection ended.");
+                        return Ok(());
+                    } else {
+                        process_input(&mut stream, &input).await?;
                     }
                 }
             }
@@ -244,12 +244,19 @@ async fn is_logged_in(stream: &mut TcpStream) -> Result<bool, Box<dyn Error>> {
 
 async fn receive_login_response(stream: &mut TcpStream) -> Result<bool, Box<dyn Error>> {
     let mut buffer = [0u8; BUFFER_SIZE];
-    stream.read_exact(&mut buffer).await?;
+    let n = stream.read(&mut buffer).await?;
 
-    // Deserialize only the relevant part of the buffer
-    let response: bool = serde_cbor::from_slice(&buffer[..std::mem::size_of::<bool>()])?;
+    // Deserialize the entire MessageType
+    let response_message: MessageType = serde_cbor::from_slice(&buffer[..n])?;
 
-    Ok(response)
+    // Match on the specific variant
+    match response_message {
+        MessageType::LoginResponse(login_successful) => Ok(login_successful),
+        _ => {
+            eprintln!("Unexpected response from the server.");
+            Ok(false)
+        }
+    }
 }
 
 #[cfg(test)]
