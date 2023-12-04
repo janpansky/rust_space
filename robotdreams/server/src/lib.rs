@@ -47,22 +47,42 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     let listener = TcpListener::bind("0.0.0.0:11111").await
         .context("Failed to bind server to address")?;
 
+    accept_connections(listener, pool, password_hash).await?;
+
+    Ok(())
+}
+
+async fn accept_connections(
+    listener: TcpListener,
+    pool: SqlitePool,
+    password_hash: &str,
+) -> Result<(), Box<dyn Error>> {
+    // Continuously accept incoming connections
     while let Ok((socket, addr)) = listener.accept().await {
+        // Clone the pool for the asynchronous task
         let pool = pool.clone();
+
+        // Clone password_hash to ensure 'static lifetime
+        let password_hash = password_hash.to_string();
+
+        // Spawn an asynchronous task for each incoming connection
         tokio::spawn(async move {
-            // Pass client address to create_user and identify_user
-            let user_id = match create_user(&pool, addr, password_hash).await {
+            // Attempt to create a new user
+            let user_id = match create_user(&pool, addr, &password_hash).await {
                 Ok(id) => id,
                 Err(err) => {
+                    // Print an error message and return if user creation fails
                     eprintln!("Failed to create user: {:?}", err);
                     return;
                 }
             };
 
+            // Handle the client connection for the newly created user
             handle_client(socket, pool, user_id).await;
         });
     }
 
+    // Return Ok(()) when all connections are handled
     Ok(())
 }
 
@@ -153,10 +173,10 @@ async fn create_user(
     let user_id = sqlx::query_scalar(
         "INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id",
     )
-    .bind(username)
-    .bind(password_hash)
-    .fetch_one(pool)
-    .await?;
+        .bind(username)
+        .bind(password_hash)
+        .fetch_one(pool)
+        .await?;
 
     Ok(user_id)
 }
@@ -173,8 +193,8 @@ async fn save_text_message(
         receiver_id,
         content
     )
-    .execute(pool)
-    .await?;
+        .execute(pool)
+        .await?;
 
     Ok(())
 }
