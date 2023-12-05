@@ -1,3 +1,30 @@
+//! # Robot Dreams Client
+//!
+//! This module contains the client-side logic for the Robot Dreams application,
+//! which connects to the server, handles user input, and sends messages (text,
+//! files, images) to the server. The client uses Tokio for asynchronous runtime,
+//! Serde for message serialization, and various other libraries for image processing,
+//! logging, and shared functionality with the server.
+//!
+//! ## Modules
+//!
+//! - [`main`]: Contains the main entry point for the client application.
+//! - [`send_quit_message`]: Sends a quit message to the server, terminating the client connection.
+//! - [`process_input`]: Processes user input based on the command, handling text, file, or image messages.
+//! - [`handle_file_message`]: Handles file messages, sending file content to the server.
+//! - [`handle_image_message`]: Handles image messages, sending image content to the server.
+//! - [`handle_text_message`]: Handles text messages, sending text content to the server.
+//! - [`is_logged_in`]: Checks if the user is logged in, handling the login process with the server.
+//! - [`receive_login_response`]: Receives and processes the login response from the server.
+//!
+//! ## Usage
+//!
+//! To run the client, execute the binary produced by the compilation process.
+//!
+//! ```
+//! cargo run --bin client
+//! ```
+
 use std::error::Error;
 use std::fs::File;
 use std::io::Read;

@@ -1,3 +1,32 @@
+//! # Robot Dreams Server
+//!
+//! This module contains the server-side logic for the Robot Dreams application,
+//! which handles incoming connections, user authentication, and message handling.
+//! The server listens for TCP connections on port 11111 and interacts with a SQLite
+//! database to store user information and chat messages.
+//!
+//! The server uses Tokio for asynchronous runtime, Serde for message serialization,
+//! SQLx for database access, and various other libraries for cryptographic hashing
+//! and logging.
+//!
+//! ## Modules
+//!
+//! - [`main`]: Contains the main entry point for the server application.
+//! - [`accept_connections`]: Handles accepting incoming client connections.
+//! - [`handle_client`]: Manages the client connection, processing messages and saving files.
+//! - [`create_user`]: Creates a new user in the database.
+//! - [`save_text_message`]: Saves a text message to the database.
+//! - [`save_file`]: Saves a file received from the client.
+//! - [`hash_string`]: Hashes a string using the SHA-256 algorithm.
+//!
+//! ## Usage
+//!
+//! To run the server, execute the binary produced by the compilation process.
+//!
+//! ```
+//! cargo run --bin server
+//! ```
+
 use tokio::net::{TcpListener, TcpStream};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use std::error::Error;
