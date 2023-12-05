@@ -9,6 +9,8 @@ use log::{info};
 use anyhow::{Context, Result};
 use sqlx::sqlite::SqliteConnectOptions;
 use sqlx::sqlite::SqlitePool;
+use crypto::digest::Digest;
+use crypto::sha2::Sha256;
 
 extern crate shared_library;
 
@@ -39,7 +41,8 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     let options = SqliteConnectOptions::new().filename(&database_path).create_if_missing(true);
 
     // Placeholder for user identification
-    let password_hash = "dummy_hash";
+    let password = "dummy_hash";
+    let password_hash = hash_string(password);
 
     // Connect to the database
     let pool = SqlitePool::connect_lazy_with(options);
@@ -55,7 +58,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 async fn accept_connections(
     listener: TcpListener,
     pool: SqlitePool,
-    password_hash: &str,
+    password_hash: String,
 ) -> Result<(), anyhow::Error> {
     // Continuously accept incoming connections
     while let Ok((socket, addr)) = listener.accept().await {
@@ -227,4 +230,10 @@ fn save_file(file_path: &str, content: &[u8]) -> Result<()> {
     let mut file = File::create(file_path)?;
     file.write_all(content)?;
     Ok(())
+}
+
+fn hash_string(input: &str) -> String {
+    let mut sha = Sha256::new();
+    sha.input_str(input);
+    sha.result_str()
 }

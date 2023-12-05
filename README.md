@@ -52,6 +52,10 @@ A login mechanism is implemented, authenticating clients based on **user** and *
 
 #### Access SQLite data
 
+when building from the project root, otherwise, put one more dot if in server folder.
+```
+export DATABASE_URL=sqlite:../database.sqlite
+```
 ```
 sqlite3 database.sqlite
 SELECT * FROM users;
