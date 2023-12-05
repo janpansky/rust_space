@@ -17,6 +17,8 @@ extern crate shared_library;
 use shared_library::{MessageType, create_directories};
 
 const BUFFER_SIZE: usize = 16384;
+const USER: &str = "user";
+const PASSWORD: &str = "password";
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>> {
@@ -40,9 +42,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 
     let options = SqliteConnectOptions::new().filename(&database_path).create_if_missing(true);
 
-    // Placeholder for user identification
-    let password = "dummy_hash";
-    let password_hash = hash_string(password);
+    let password_hash = hash_string(PASSWORD);
 
     // Connect to the database
     let pool = SqlitePool::connect_lazy_with(options);
@@ -66,7 +66,7 @@ async fn accept_connections(
         let pool = pool.clone();
 
         // Clone password_hash to ensure 'static lifetime
-        let password_hash = password_hash.to_string();
+        let password_hash = password_hash.clone();
 
         // Spawn an asynchronous task for each incoming connection
         tokio::spawn(async move {
@@ -81,7 +81,7 @@ async fn accept_connections(
             };
 
             // Handle the client connection for the newly created user
-            handle_client(socket, pool, user_id).await;
+            handle_client(socket, pool, user_id).await.expect("PANIC!");
         });
     }
 
@@ -149,7 +149,7 @@ async fn handle_client(mut socket: TcpStream, pool: SqlitePool, user_id: i64) ->
                 }
                 MessageType::Login(username, password) => {
                     // Perform basic authentication
-                    let login_success = username == "user" && password == "password";
+                    let login_success = username == USER && password == PASSWORD;
 
                     if login_success {
                         info!("Client {} logged in successfully.", client_addr);
