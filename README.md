@@ -29,10 +29,11 @@ The project is organized into three crates:
    cargo run --release --bin client
 5. Sending a Text message:
 
-In the client terminal, enter a message and press Enter. The message will be sent to the server, and you should see the server log the received text.
+In the client terminal, enter a message and press Enter. The message will be sent to the server, and you should see the
+server log the received text.
 
 6. Sending a File:
-To send a file, type the following command in the client terminal:
+   To send a file, type the following command in the client terminal:
    ```
    .file rust.txt
 
@@ -41,21 +42,27 @@ To send a file, type the following command in the client terminal:
    .image rust.png
    or
    .image rust.jpg
-   
+
 ### Crates Conversion
-The project has been converted into separate crates for client, server, and a shared library for message types. The workspace is defined in the Cargo.toml at the project root.
+
+The project has been converted into separate crates for client, server, and a shared library for message types. The
+workspace is defined in the Cargo.toml at the project root.
 
 ### Additional Features
+
 The server uses SQLite for storing client information and text messages.
 
-A login mechanism is implemented, authenticating clients based on constants **USER** and **PASSWORD**. Every user has the same credentials at the moment, but uniques identification as client ip is stored.
+A login mechanism is implemented, authenticating clients based on constants **USER** and **PASSWORD**. Every user has
+the same credentials at the moment, but unique identification as CLIENT-IP is stored in the db.
 
 #### Access SQLite data
 
 when building from the project root, otherwise, put one more dot if in server folder.
+
 ```
 export DATABASE_URL=sqlite:../database.sqlite
 ```
+
 ```
 sqlite3 database.sqlite
 SELECT * FROM users;
