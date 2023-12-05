@@ -72,4 +72,6 @@ export DATABASE_URL=sqlite:../database.sqlite
 ```
 sqlite3 database.sqlite
 SELECT * FROM users;
+or
+SELECT * FROM chat_messages;
 .exit
