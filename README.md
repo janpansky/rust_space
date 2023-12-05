@@ -16,17 +16,21 @@ The project is organized into three crates:
    ```bash
    git clone -b networking git@github.com:janpansky/rust_space.git
    cd robotdreams
+   ```
 2. Build the project:
     ```bash
    cargo build --release
+   ```
 3. Run the server:
    ```bash
    cd robotdreams
    cargo run --release --bin server
+   ```
 4. Run the client:
    ```bash
    cd robotdreams
    cargo run --release --bin client
+   ```
 5. Sending a Text message:
 
 In the client terminal, enter a message and press Enter. The message will be sent to the server, and you should see the
@@ -36,12 +40,14 @@ server log the received text.
    To send a file, type the following command in the client terminal:
    ```
    .file rust.txt
+   ```
 
 7. Sending an Image (test the conversion as well with jpg):
    ```
    .image rust.png
    or
    .image rust.jpg
+   ```
 
 ### Crates Conversion
 
