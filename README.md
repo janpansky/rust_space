@@ -75,3 +75,38 @@ SELECT * FROM users;
 or
 SELECT * FROM chat_messages;
 .exit
+```
+
+# Actix Integration
+
+Run the server at http://127.0.0.1:8080/
+
+```bash
+   cargo run robotdreams
+   ```
+
+## API Endpoints
+
+### Users
+
+- **GET /users**: Get a list of all users.
+
+### Chat Messages
+
+- **GET /chat_messages**: Get a list of all chat messages.
+
+## API Testing
+
+To test the API endpoints, you can use tools like `curl` or use a web browser. Below are examples using `curl`:
+
+### Get Users
+
+```bash
+curl http://127.0.0.1:8080/users
+```
+
+### Get Chat messages
+
+```bash
+curl http://127.0.0.1:8080/chat_messages
+```
