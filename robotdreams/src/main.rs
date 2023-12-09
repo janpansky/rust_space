@@ -92,7 +92,7 @@ async fn get_chat_messages(pool: web::Data<Mutex<SqlitePool>>) -> impl Responder
 mod tests {
     use super::*;
     use actix_service::Service;
-    use actix_web::test;
+    use actix_web::{http, test};
 
     #[actix_rt::test]
     async fn test_get_users() {
@@ -102,6 +102,5 @@ mod tests {
         let resp = test::call_service(&create_test_app(), req).await;
 
         assert_eq!(resp.status(), http::StatusCode::OK);
-        // Additional assertions based on the expected response content
     }
 }
