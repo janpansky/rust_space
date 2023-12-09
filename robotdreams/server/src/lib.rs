@@ -175,6 +175,7 @@ async fn handle_client(mut socket: TcpStream, pool: SqlitePool, user_id: i64) ->
                         .await
                         .with_context(|| format!("Failed to save text message: {}", text))
                         .unwrap();
+                    info!("Storing text message: {} ", text);
                 }
                 MessageType::Login(username, password) => {
                     // Perform basic authentication
@@ -265,4 +266,55 @@ fn hash_string(input: &str) -> String {
     let mut sha = Sha256::new();
     sha.input_str(input);
     sha.result_str()
+}
+
+#[cfg(test)]
+mod server_tests {
+    use super::*;
+    use tokio::time::Duration;
+
+    // Unit test for the hash_string function
+    #[test]
+    fn test_hash_string() {
+        let input = "test_password";
+        let hashed = hash_string(input);
+        assert_eq!(hashed.len(), 64); // SHA256 hash length
+    }
+
+    // Unit test for the create_user function
+    #[tokio::test]
+    async fn test_create_user() {
+        let pool = create_test_database_pool().await; // Create a test database pool
+        let addr = "127.0.0.1:12345".parse().unwrap(); // Sample address
+        let password_hash = hash_string("test_password");
+
+        let user_id = create_user(&pool, addr, &password_hash).await.unwrap();
+        assert!(user_id > 0);
+    }
+
+    // Integration test for the entire client-server interaction
+    #[tokio::test]
+    async fn test_client_server_interaction() {
+        // Start the server in a separate task
+        tokio::spawn(async {
+            let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let pool = create_test_database_pool().await;
+            let password_hash = hash_string("test_password");
+
+            accept_connections(listener, pool, password_hash).await.unwrap();
+        });
+
+        // Allow some time for the server to start
+        tokio::time::sleep(Duration::from_secs(1)).await;
+
+        // Connect the client to the server
+        let result = client_server_interaction().await;
+        assert!(result.is_ok());
+    }
+
+    // Helper function to create a test database pool
+    async fn create_test_database_pool() -> SqlitePool {
+        let options = SqliteConnectOptions::new().filename(":memory:");
+        SqlitePool::connect_lazy_with(options)
+    }
 }
