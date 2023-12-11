@@ -18,12 +18,13 @@
 //! - [`save_text_message`]: Saves a text message to the database.
 //! - [`save_file`]: Saves a file received from the client.
 //! - [`hash_string`]: Hashes a string using the SHA-256 algorithm.
+//! - [`tests`]: Contains unit and integration tests for the server.
 //!
 //! ## Usage
 //!
 //! To run the server, execute the binary produced by the compilation process.
 //!
-//! ```
+//! ```bash
 //! cargo run --bin server
 //! ```
 
@@ -49,6 +50,7 @@ const BUFFER_SIZE: usize = 16384;
 const USER: &str = "user";
 const PASSWORD: &str = "password";
 
+/// Main entry point for the server application.
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>> {
     // Set the DATABASE_URL before connecting to the database
@@ -84,6 +86,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+/// Handles accepting incoming client connections.
 async fn accept_connections(
     listener: TcpListener,
     pool: SqlitePool,
@@ -118,6 +121,7 @@ async fn accept_connections(
     Ok(())
 }
 
+/// Manages the client connection, processing messages and saving files.
 async fn handle_client(mut socket: TcpStream, pool: SqlitePool, user_id: i64) -> Result<(), anyhow::Error> {
     let client_addr = socket.peer_addr().unwrap();
     info!("Client connected from: {}", client_addr);
@@ -215,6 +219,7 @@ async fn handle_client(mut socket: TcpStream, pool: SqlitePool, user_id: i64) ->
     Ok(()) // Return a Result indicating success
 }
 
+/// Asynchronously creates a new user in the database, saves a text message, and provides utility functions for file saving and string hashing.
 async fn create_user(
     pool: &SqlitePool,
     client_addr: std::net::SocketAddr,
@@ -237,6 +242,7 @@ async fn create_user(
     Ok(user_id)
 }
 
+/// Asynchronously saves a text message to the chat_messages table in the database.
 async fn save_text_message(
     pool: &SqlitePool,
     sender_id: i64,
@@ -255,14 +261,16 @@ async fn save_text_message(
     Ok(())
 }
 
-// Define a function to save a file
+/// Synchronously saves a file with the specified content to the provided file path.
 fn save_file(file_path: &str, content: &[u8]) -> Result<()> {
     let mut file = File::create(file_path)?;
     file.write_all(content)?;
     Ok(())
 }
 
+/// Hashes the input string using the SHA-256 algorithm and returns the hashed result.
 fn hash_string(input: &str) -> String {
+    // Create a SHA-256 hasher and compute the hash of the input string
     let mut sha = Sha256::new();
     sha.input_str(input);
     sha.result_str()

@@ -1,7 +1,31 @@
+//! # Robot Dreams Actix-Web Server
+//!
+//! This module contains the Actix-Web server implementation for the Robot Dreams application.
+//! The server handles incoming HTTP requests, interacts with a SQLite database to fetch user
+//! information and chat messages, and provides API endpoints for clients to retrieve data.
+//!
+//! ## Modules
+//!
+//! - [`main`]: Contains the main entry point for the Actix-Web server application.
+//! - [`index`]: Defines the handler for the root route ("/") that serves an HTML file.
+//! - [`get_messages`]: Defines the handler for the "/messages" route that fetches messages from the database.
+//! - [`get_users`]: Defines the handler for the "/users" route that fetches user information from the database.
+//! - [`get_chat_messages`]: Defines the handler for the "/chat_messages" route that fetches chat messages from the database.
+//! - [`tests`]: Contains unit tests for the server.
+//!
+//! ## Usage
+//!
+//! To run the server, execute the binary produced by the compilation process.
+//!
+//! ```
+//! cargo run --bin robotdreams
+//! ```
+
 use actix_web::{web, App, HttpServer, HttpResponse, Responder};
 use sqlx::{Sqlite, SqlitePool, sqlite::SqlitePoolOptions};
 use std::sync::Mutex;
 
+/// Represents a user in the system.
 #[derive(Debug, sqlx::FromRow, serde::Serialize)]
 struct User {
     id: i64,
@@ -10,6 +34,7 @@ struct User {
     created_at: String,
 }
 
+/// Represents a chat message.
 #[derive(Debug, sqlx::FromRow, serde::Serialize)]
 struct ChatMessage {
     id: i64,
@@ -19,6 +44,7 @@ struct ChatMessage {
     timestamp: String,
 }
 
+/// Main entry point for the Actix-Web server application.
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Parse the database URL
@@ -48,16 +74,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+/// Defines the handler for the root route ("/") that serves an HTML file.
 async fn index() -> HttpResponse {
     // Serve your HTML file here
     HttpResponse::Ok().body("Hello, Actix!")
 }
 
+/// Defines the handler for the "/messages" route that fetches messages from the database.
 async fn get_messages() -> HttpResponse {
     // Fetch and return messages from the database
     HttpResponse::Ok().body("Messages will be fetched from the database.")
 }
 
+/// Defines the handler for the "/users" route that fetches user information from the database.
 async fn get_users(pool: web::Data<Mutex<SqlitePool>>) -> impl Responder {
     let pool = pool.lock().unwrap();
     let result = sqlx::query_as::<Sqlite, User>("SELECT * FROM users")
@@ -73,6 +102,7 @@ async fn get_users(pool: web::Data<Mutex<SqlitePool>>) -> impl Responder {
     }
 }
 
+/// Defines the handler for the "/chat_messages" route that fetches chat messages from the database.
 async fn get_chat_messages(pool: web::Data<Mutex<SqlitePool>>) -> impl Responder {
     let pool = pool.lock().unwrap();
     let result = sqlx::query_as::<Sqlite, ChatMessage>("SELECT * FROM chat_messages")

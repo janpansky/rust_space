@@ -11,10 +11,6 @@ path = "server/src/lib.rs"
 name = "client"
 path = "client/src/main.rs"
 
-[[test]]
-name = "test"
-path = "tests/client_tests.rs"
-
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }

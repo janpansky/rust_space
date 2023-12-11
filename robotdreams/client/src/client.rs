@@ -100,7 +100,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     }
 }
 
-// Send a quit message to the server
+/// Sends a quit message to the server to terminate the connection.
 pub async fn send_quit_message(stream: &mut TcpStream) -> Result<(), Box<dyn Error>> {
     let quit_message = MessageType::Quit;
     let message_bytes = serde_cbor::to_vec(&quit_message)?;
@@ -108,7 +108,7 @@ pub async fn send_quit_message(stream: &mut TcpStream) -> Result<(), Box<dyn Err
     Ok(())
 }
 
-// Process user input based on the command
+/// Processes user input, handling text, file, or image messages.
 pub async fn process_input(
     stream: &mut TcpStream,
     input: &str,
@@ -124,7 +124,7 @@ pub async fn process_input(
     Ok(())
 }
 
-// Handle the file message
+/// Handles a file message, sending the specified file content to the server.
 pub async fn handle_file_message(
     stream: &mut TcpStream,
     input: &str,
@@ -159,7 +159,7 @@ pub async fn handle_file_message(
     Ok(())
 }
 
-// Handle the image message
+/// Handles an image message, sending the specified image content to the server.
 pub async fn handle_image_message(
     stream: &mut TcpStream,
     input: &str,
@@ -219,7 +219,7 @@ pub async fn handle_image_message(
     Ok(())
 }
 
-// Handle the text message
+/// Handles a text message, sending the specified text content to the server.
 pub async fn handle_text_message(
     stream: &mut TcpStream,
     input: &str,
@@ -230,7 +230,7 @@ pub async fn handle_text_message(
     Ok(())
 }
 
-// Check if the user is logged in
+/// Checks if the user is logged in by sending login credentials to the server.
 async fn is_logged_in(stream: &mut TcpStream) -> Result<bool, Box<dyn Error>> {
     // Initialize the reader within the function
     let stdin = io::stdin();
@@ -269,6 +269,7 @@ async fn is_logged_in(stream: &mut TcpStream) -> Result<bool, Box<dyn Error>> {
     }
 }
 
+/// Receives and processes the login response from the server, returning a boolean indicating login success.
 async fn receive_login_response(stream: &mut TcpStream) -> Result<bool, Box<dyn Error>> {
     let mut buffer = [0u8; BUFFER_SIZE];
     let n = stream.read(&mut buffer).await?;
