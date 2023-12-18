@@ -82,7 +82,7 @@ SELECT * FROM chat_messages;
 Run the server at http://127.0.0.1:8080/
 
 ```bash
-   cargo run robotdreams
+   cargo run --bin robotdreams
    ```
 
 ## API Endpoints
@@ -110,3 +110,11 @@ curl http://127.0.0.1:8080/users
 ```bash
 curl http://127.0.0.1:8080/chat_messages
 ```
+
+# Web server Integration
+
+Run the server at http://127.0.0.1:8080/
+
+```bash
+   cargo run --bin web_server
+   ```
