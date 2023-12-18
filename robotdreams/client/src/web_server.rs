@@ -26,9 +26,16 @@ async fn index() -> HttpResponse {
         .body(include_str!("../index.html"))
 }
 
-async fn send_message(data: web::Json<MessageData>) -> HttpResponse {
+async fn send_message(data: web::Json<MessageData>, messages_sent: web::Data<Mutex<Counter>>) -> HttpResponse {
     let message = &data.message;
-    MESSAGES_SENT.inc();  // Increment the messages sent counter
+
+    // Acquire lock before incrementing
+    let mut guard = messages_sent.lock().unwrap();
+    guard.inc();  // Increment the messages sent counter
+
+    // Log the current count
+    log::info!("Messages Sent Count: {}", guard.get());
+
     // Process the message as needed
     HttpResponse::Ok().json(MessageResponse {
         message: format!("Received message: {}", message),
@@ -64,7 +71,7 @@ async fn main() -> std::io::Result<()> {
             .route("/send", web::post().to(send_message))
             .route("/metrics", web::get().to(metrics))
     })
-    .bind("127.0.0.1:8080")?
-    .run()
-    .await
+        .bind("127.0.0.1:8080")?
+        .run()
+        .await
 }
