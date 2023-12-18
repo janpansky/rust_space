@@ -113,8 +113,17 @@ curl http://127.0.0.1:8080/chat_messages
 
 # Web server Integration
 
+A simple UI for sending messages and incrementing the counter.
+
 Run the server at http://127.0.0.1:8080/
 
 ```bash
    cargo run --bin web_server
    ```
+
+## The metrics
+
+```bash
+curl http://127.0.0.1:8080/metrics
+```
+
