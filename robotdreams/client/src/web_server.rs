@@ -62,8 +62,6 @@ async fn index() -> HttpResponse {
 async fn send_message(data: web::Json<MessageData>, messages_sent: web::Data<Mutex<Counter>>) -> HttpResponse {
     let message_data = &data.message;
 
-    log::info!("Received message_data: {}", message_data);
-
     // Acquire lock before incrementing
     let guard = match messages_sent.lock() {
         Ok(guard) => guard,
@@ -83,8 +81,9 @@ async fn send_message(data: web::Json<MessageData>, messages_sent: web::Data<Mut
         Ok(MessageTypeWrapper(MessageType::Text(text))) => {
             // Handle text message
             // You can replace this with your actual text message handling logic
+            println!("Received message_data: {}", message_data);
             HttpResponse::Ok().json(MessageResponse {
-                message: format!("Received text message: {}", text),
+                message: format!("Received text message: {}", message_data),
             })
         }
         Ok(MessageTypeWrapper(MessageType::File(filename, content))) => {
